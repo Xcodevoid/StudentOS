@@ -15,6 +15,7 @@ import CalendarPage from './pages/Calendar'
 import Momentum from './pages/Momentum'
 import NorthStar from './pages/NorthStar'
 import SettingsPage from './pages/Settings'
+import PublicPortfolio from './pages/PublicPortfolio'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <HashRouter>
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/p/:slug" element={<PublicPortfolio />} />
                 <Route
                   element={
                     <RequireAccess>

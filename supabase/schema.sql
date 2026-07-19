@@ -19,11 +19,18 @@ create table if not exists profiles (
   badges_seen jsonb not null default '[]'::jsonb,
   reminders_notified jsonb not null default '{}'::jsonb,
   north_star jsonb not null default '{}'::jsonb,
+  public_slug text unique,
+  portfolio_public boolean not null default false,
   updated_at timestamptz not null default now()
 );
 
 -- Adds the column for projects created before North Star existed.
 alter table profiles add column if not exists north_star jsonb not null default '{}'::jsonb;
+alter table profiles add column if not exists public_slug text unique;
+alter table profiles add column if not exists portfolio_public boolean not null default false;
+
+alter table profiles drop constraint if exists public_slug_format;
+alter table profiles add constraint public_slug_format check (public_slug is null or public_slug ~ '^[a-z0-9-]{3,32}$');
 
 alter table profiles enable row level security;
 create policy "profiles: owner full access" on profiles
@@ -119,10 +126,16 @@ create table if not exists activities (
   end_date date,
   description text not null default '',
   dimensions jsonb not null default '[]'::jsonb,
+  common_app_type text not null default '',
+  common_app_position text not null default '',
+  common_app_summary text not null default '',
   created_at timestamptz not null default now()
 );
 
 alter table activities add column if not exists dimensions jsonb not null default '[]'::jsonb;
+alter table activities add column if not exists common_app_type text not null default '';
+alter table activities add column if not exists common_app_position text not null default '';
+alter table activities add column if not exists common_app_summary text not null default '';
 
 create table if not exists deadlines (
   id uuid primary key default gen_random_uuid(),
@@ -240,6 +253,35 @@ begin
     );
   end loop;
 end $$;
+
+-- ---------- public portfolio sharing ----------
+-- Every table above is locked to auth.uid() = user_id, so an anonymous site
+-- visitor can't read them directly. These two views are the one deliberate,
+-- narrow exception: a student can flip `portfolio_public = true` and get a
+-- shareable /p/<slug> link.
+--
+-- Views in Postgres run with the privileges of their OWNER (not the caller)
+-- unless created with `security_invoker = true` — which is exactly what
+-- lets the `anon` role see a row here despite the base tables' RLS. That is
+-- only safe because the security boundary has moved from RLS into this
+-- file: the WHERE clause and column list below are fixed, not caller-
+-- supplied. Never change either to accept a parameter or widen the column
+-- list to `select *` — that would leak every public student's private data
+-- (GPA, streaks, reflections, north_star, etc. all live on the same
+-- `profiles` row as the public bio).
+create or replace view public_portfolios as
+  select public_slug, name, grade_level, school, bio
+  from profiles
+  where portfolio_public = true and public_slug is not null;
+
+create or replace view public_portfolio_projects as
+  select pr.public_slug, p.title, p.type, p.description, p.role, p.date, p.link, p.tags, p.featured
+  from projects p
+  join profiles pr on pr.id = p.user_id
+  where pr.portfolio_public = true and pr.public_slug is not null;
+
+grant select on public_portfolios to anon, authenticated;
+grant select on public_portfolio_projects to anon, authenticated;
 
 -- ---------- indexes ----------
 create index if not exists idx_assignments_user on assignments(user_id);

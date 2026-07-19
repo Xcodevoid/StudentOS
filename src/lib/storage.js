@@ -16,6 +16,8 @@ export function defaultData() {
       gpaScale: 4.0,
       onboarded: false,
       notificationsEnabled: false,
+      publicSlug: '',
+      portfolioPublic: false,
     },
     classes: [],
     assignments: [],

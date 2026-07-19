@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, Upload, Sparkles, Trash2, ShieldCheck, BellRing, BellOff, Send, LogOut, LogIn, Cloud, CloudOff } from 'lucide-react'
+import { Download, Upload, Sparkles, Trash2, ShieldCheck, BellRing, BellOff, Send, LogOut, LogIn, Cloud, CloudOff, Globe, Copy, ExternalLink } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { setGuestMode } from '../lib/guestMode'
+import { supabase } from '../lib/supabaseClient'
+import { slugify, isValidSlug, SLUG_MIN, SLUG_MAX } from '../lib/publicPortfolio'
 import { Card, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Misc'
@@ -33,6 +35,45 @@ export default function SettingsPage() {
   const [confirmReset, setConfirmReset] = useState(false)
   const [confirmDemo, setConfirmDemo] = useState(false)
   const [importError, setImportError] = useState('')
+  const [slugDraft, setSlugDraft] = useState(null)
+  const [slugSaving, setSlugSaving] = useState(false)
+  const [slugError, setSlugError] = useState('')
+
+  const slugValue = slugDraft ?? (data.profile.publicSlug || slugify(data.profile.name) || '')
+  const shareUrl = `${window.location.origin}${window.location.pathname}#/p/${data.profile.publicSlug}`
+
+  async function publishPortfolio() {
+    const slug = slugify(slugValue)
+    if (!isValidSlug(slug)) {
+      setSlugError(`Use ${SLUG_MIN}-${SLUG_MAX} lowercase letters, numbers, or hyphens.`)
+      return
+    }
+    setSlugSaving(true)
+    setSlugError('')
+    try {
+      const { error } = await supabase.from('profiles').update({ public_slug: slug, portfolio_public: true }).eq('id', user.id)
+      if (error) {
+        setSlugError(error.code === '23505' ? 'That link is taken — try another.' : 'Could not save. Try again.')
+        return
+      }
+      setProfile({ publicSlug: slug, portfolioPublic: true })
+      setSlugDraft(null)
+      push('Portfolio published', { tone: 'success', description: 'Your link is live.' })
+    } catch {
+      setSlugError('Could not reach the server. Check your connection and try again.')
+    } finally {
+      setSlugSaving(false)
+    }
+  }
+
+  function unpublishPortfolio() {
+    setProfile({ portfolioPublic: false })
+  }
+
+  function copyShareLink() {
+    navigator.clipboard.writeText(shareUrl)
+    push('Link copied')
+  }
 
   async function handleSignOut() {
     await signOut()
@@ -141,6 +182,49 @@ export default function SettingsPage() {
           </Field>
         </div>
       </Card>
+
+      {isCloudConfigured && (
+        <Card className="p-5">
+          <CardHeader
+            title="Public Portfolio"
+            subtitle="A shareable link to your Portfolio — for recruiters, counselors, or a college application's additional info section."
+            action={mode === 'cloud' && data.profile.portfolioPublic && slugDraft === null ? <Badge tone="green"><Globe size={11} className="inline -mt-0.5 mr-1" />Public</Badge> : null}
+          />
+          <div className="mt-4">
+            {mode !== 'cloud' ? (
+              <p className="text-[13px] text-neutral-500">Sign in to get a shareable link — public portfolios need a synced account.</p>
+            ) : data.profile.portfolioPublic && slugDraft === null ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={shareUrl} className="flex-1" />
+                  <Button size="sm" variant="secondary" icon={Copy} onClick={copyShareLink}>Copy</Button>
+                  <Button size="sm" variant="secondary" as="a" href={shareUrl} target="_blank" rel="noreferrer" icon={ExternalLink}>Open</Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setSlugDraft(data.profile.publicSlug)}>Edit link</Button>
+                  <Button size="sm" variant="ghost" onClick={unpublishPortfolio}>Unpublish</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Field label="Your link">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13.5px] text-neutral-400 flex-shrink-0">.../#/p/</span>
+                    <Input value={slugValue} onChange={(e) => setSlugDraft(e.target.value)} placeholder="jamie-chen" />
+                  </div>
+                </Field>
+                {slugError && <p className="text-[12.5px] text-red-500">{slugError}</p>}
+                <div className="flex items-center gap-2">
+                  <Button size="sm" onClick={publishPortfolio} disabled={slugSaving}>{slugSaving ? 'Publishing…' : 'Publish'}</Button>
+                  {data.profile.portfolioPublic && (
+                    <Button size="sm" variant="ghost" onClick={() => { setSlugDraft(null); setSlugError('') }}>Cancel</Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       <Card className="p-5">
         <CardHeader title="Reminders" subtitle="Browser notifications for homework, exams, and deadlines while StudentOS is open." />

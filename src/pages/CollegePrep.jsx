@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap } from 'lucide-react'
+import { Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap, FileText, Copy, Printer } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
+import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
 import { Button, IconButton } from '../components/ui/Button'
 import { Field, Input, Select, Textarea } from '../components/ui/Form'
@@ -9,6 +10,18 @@ import { Badge, EmptyState } from '../components/ui/Misc'
 import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dates'
 import { DEFAULT_ACTIVITY_DIMENSIONS } from '../lib/northStar'
 import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
+import {
+  COMMON_APP_CATEGORIES,
+  DEFAULT_COMMON_APP_TYPE,
+  POSITION_MAX,
+  SUMMARY_MAX,
+  MAX_RANKED_ACTIVITIES,
+  guessPosition,
+  defaultSummary,
+  formatActivityBlock,
+  formatAllActivities,
+  sortByImportance,
+} from '../lib/commonApp'
 
 const ACTIVITY_TYPES = {
   activity: { label: 'Activity', icon: Users, tone: 'accent' },
@@ -57,6 +70,7 @@ export default function CollegePrep() {
         {[
           { id: 'timeline', label: 'Timeline', icon: Compass },
           { id: 'manage', label: 'Manage', icon: Flag },
+          { id: 'export', label: 'Common App Export', icon: FileText },
         ].map((t) => (
           <button
             key={t.id}
@@ -71,7 +85,9 @@ export default function CollegePrep() {
         ))}
       </div>
 
-      {tab === 'timeline' ? <TimelineView /> : <ManageView />}
+      {tab === 'timeline' && <TimelineView />}
+      {tab === 'manage' && <ManageView />}
+      {tab === 'export' && <CommonAppExportView />}
     </div>
   )
 }
@@ -373,4 +389,134 @@ function formatRange(start, end) {
   if (!start) return ''
   if (!end) return `${formatDate(start)} – Present`
   return `${formatDate(start)} – ${formatDate(end)}`
+}
+
+function CommonAppExportView() {
+  const { data } = useStore()
+  const { push } = useToast()
+  const sorted = useMemo(() => sortByImportance(data.activities), [data.activities])
+  const overLimit = sorted.length > MAX_RANKED_ACTIVITIES
+
+  function copyAll() {
+    navigator.clipboard.writeText(formatAllActivities(sorted))
+    push('Copied all activities', { description: 'Paste them into the Common App as you go.' })
+  }
+
+  if (sorted.length === 0) {
+    return (
+      <Card className="p-5">
+        <EmptyState
+          icon={FileText}
+          title="No activities to export yet"
+          description="Add activities in the Manage tab and they'll show up here, ready to paste into the Common App."
+        />
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-5">
+        <CardHeader
+          title="Common App Activities"
+          subtitle={`${sorted.length} logged, sorted by time commitment — Common App only accepts ${MAX_RANKED_ACTIVITIES}, ranked by importance to you.`}
+          action={
+            <div className="flex items-center gap-2 no-print">
+              <Button size="sm" variant="secondary" icon={Printer} onClick={() => window.print()}>
+                Print
+              </Button>
+              <Button size="sm" icon={Copy} onClick={copyAll}>
+                Copy all
+              </Button>
+            </div>
+          }
+        />
+        {overLimit && (
+          <p className="mt-3 text-[12.5px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-lg px-3 py-2">
+            You have {sorted.length} activities logged — pick your strongest {MAX_RANKED_ACTIVITIES} for the actual application.
+          </p>
+        )}
+        <p className="mt-3 text-[12px] text-neutral-400">
+          Categories follow Common App's typical list — double check against this year's application.
+        </p>
+      </Card>
+
+      <div className="space-y-3">
+        {sorted.map((a, i) => (
+          <ExportRow key={a.id} activity={a} rank={i + 1} overLimit={i >= MAX_RANKED_ACTIVITIES} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ExportRow({ activity, rank, overLimit }) {
+  const { updateItem } = useStore()
+  const { push } = useToast()
+  const [type, setType] = useState(activity.commonAppType || DEFAULT_COMMON_APP_TYPE[activity.category] || 'Other Club/Activity')
+  const [position, setPosition] = useState(activity.commonAppPosition || guessPosition(activity.title))
+  const [summary, setSummary] = useState(defaultSummary(activity))
+
+  function commitType(value) {
+    setType(value)
+    updateItem('activities', activity.id, { commonAppType: value })
+  }
+  function commitPosition() {
+    if (position !== activity.commonAppPosition) updateItem('activities', activity.id, { commonAppPosition: position })
+  }
+  function commitSummary() {
+    if (summary !== activity.commonAppSummary) updateItem('activities', activity.id, { commonAppSummary: summary })
+  }
+  function copyRow() {
+    navigator.clipboard.writeText(formatActivityBlock({ ...activity, commonAppType: type, commonAppPosition: position, commonAppSummary: summary }))
+    push('Copied to clipboard')
+  }
+
+  return (
+    <Card className={`p-5 ${overLimit ? 'opacity-60' : ''}`}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge>#{rank}</Badge>
+            <p className="text-[14.5px] font-semibold text-neutral-900 dark:text-white">{activity.title}</p>
+          </div>
+          <p className="text-[12.5px] text-neutral-400 mt-0.5">
+            {[activity.org, activity.hoursPerWeek ? `${activity.hoursPerWeek} hrs/wk` : null, activity.weeksPerYear ? `${activity.weeksPerYear} wks/yr` : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        </div>
+        <IconButton icon={Copy} onClick={copyRow} className="flex-shrink-0 no-print" />
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-3 mt-4">
+        <Field label="Common App category">
+          <Select value={type} onChange={(e) => commitType(e.target.value)}>
+            {COMMON_APP_CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Position / leadership" hint={`${position.length}/${POSITION_MAX} characters`}>
+          <Input
+            value={position}
+            maxLength={POSITION_MAX}
+            onChange={(e) => setPosition(e.target.value)}
+            onBlur={commitPosition}
+            placeholder="e.g. Team Captain"
+          />
+        </Field>
+      </div>
+      <Field label="Description" hint={`${summary.length}/${SUMMARY_MAX} characters`} className="mt-3">
+        <Textarea
+          value={summary}
+          maxLength={SUMMARY_MAX}
+          rows={2}
+          onChange={(e) => setSummary(e.target.value)}
+          onBlur={commitSummary}
+          placeholder="What did you accomplish? What recognition did you receive?"
+        />
+      </Field>
+    </Card>
+  )
 }
