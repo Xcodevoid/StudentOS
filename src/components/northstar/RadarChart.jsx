@@ -76,6 +76,10 @@ export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels
               </foreignObject>
             )
           })}
+        {/* Opaque mask so the center label never has to compete with the
+            polygon/grid behind it — vertices near the middle (low scores)
+            would otherwise collide with the text. */}
+        {children && <circle cx={center} cy={center} r={size * 0.145} className="fill-white dark:fill-neutral-900" />}
       </svg>
       {children && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">{children}</div>}
     </div>
