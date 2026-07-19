@@ -12,6 +12,7 @@ import Exams from './pages/Exams'
 import Portfolio from './pages/Portfolio'
 import CollegePrep from './pages/CollegePrep'
 import CalendarPage from './pages/Calendar'
+import Momentum from './pages/Momentum'
 import SettingsPage from './pages/Settings'
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/momentum" element={<Momentum />} />
                   <Route path="/academics" element={<Academics />} />
                   <Route path="/exams" element={<Exams />} />
                   <Route path="/portfolio" element={<Portfolio />} />

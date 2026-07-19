@@ -14,6 +14,12 @@ export const TABLES = {
   goals: 'goals',
   tasks: 'tasks',
   studySessions: 'study_sessions',
+  commitments: 'commitments',
+  momentumSessions: 'momentum_sessions',
+  distractions: 'distractions',
+  habits: 'habits',
+  habitLogs: 'habit_logs',
+  reflections: 'reflections',
 }
 
 // entity -> { appKey: dbColumn }
@@ -25,6 +31,38 @@ const FIELD_MAP = {
   deadlines: { schoolName: 'school_name' },
   tasks: { dueDate: 'due_date' },
   studySessions: { examId: 'exam_id' },
+  commitments: { estimatedMinutes: 'estimated_minutes' },
+  momentumSessions: { commitmentId: 'commitment_id', taskLabel: 'task_label', plannedMinutes: 'planned_minutes', actualMinutes: 'actual_minutes', goalCompleted: 'goal_completed', focusRating: 'focus_rating' },
+  distractions: { minutesLost: 'minutes_lost' },
+  habitLogs: { habitId: 'habit_id' },
+}
+
+// Fields that are numeric / date / uuid-FK columns, where an empty string
+// from a form must become SQL null (numeric/date/uuid can't hold ''). Every
+// field NOT listed here is a plain text column declared NOT NULL DEFAULT '',
+// so an empty string is its correct, intended value and must be left alone —
+// nulling it would violate the NOT NULL constraint and silently fail to save.
+const NULLABLE_FIELDS = {
+  classes: ['grade'],
+  assignments: ['classId', 'dueDate'],
+  exams: ['date'],
+  studyTasks: ['examId'],
+  projects: ['date'],
+  activities: ['startDate', 'endDate', 'hoursPerWeek', 'weeksPerYear'],
+  deadlines: ['date'],
+  tasks: ['dueDate'],
+  studySessions: ['examId', 'date'],
+  commitments: ['estimatedMinutes', 'date'],
+  momentumSessions: ['commitmentId', 'date', 'goalCompleted', 'focusRating'],
+  distractions: ['date'],
+  habitLogs: ['date'],
+  reflections: ['date'],
+}
+
+// Nullable fields where null has a distinct tri-state meaning from '' (right
+// now just booleans) — these should stay `null` when read back, not become ''.
+const PRESERVE_NULL_ON_READ = {
+  momentumSessions: ['goalCompleted'],
 }
 
 function invert(map) {
@@ -33,23 +71,26 @@ function invert(map) {
 
 export function toDb(entity, item, userId) {
   const map = FIELD_MAP[entity] || {}
+  const nullable = NULLABLE_FIELDS[entity] || []
   const row = { user_id: userId }
   for (const [key, value] of Object.entries(item)) {
     if (key === 'id') {
       row.id = value
       continue
     }
-    row[map[key] || key] = value === '' ? null : value
+    row[map[key] || key] = value === '' && nullable.includes(key) ? null : value
   }
   return row
 }
 
 export function fromDb(entity, row) {
   const map = invert(FIELD_MAP[entity] || {})
+  const preserveNull = PRESERVE_NULL_ON_READ[entity] || []
   const item = {}
   for (const [key, value] of Object.entries(row)) {
     if (key === 'user_id' || key === 'created_at') continue
-    item[map[key] || key] = value === null ? '' : value
+    const appKey = map[key] || key
+    item[appKey] = value === null && !preserveNull.includes(appKey) ? '' : value
   }
   return item
 }

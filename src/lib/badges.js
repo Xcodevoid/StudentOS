@@ -1,4 +1,5 @@
-import { Rocket, BookOpen, Award, GraduationCap, Flag, Flame, Trophy, Timer, ListChecks } from 'lucide-react'
+import { Rocket, BookOpen, Award, GraduationCap, Flag, Flame, Trophy, Timer, ListChecks, Zap, Repeat, Moon } from 'lucide-react'
+import { computeStreak } from './streak'
 
 export const BADGES = [
   {
@@ -67,6 +68,41 @@ export const BADGES = [
     description: 'Kept a 30-day streak going',
     icon: Trophy,
     check: (_data, streak) => streak.current >= 30,
+  },
+  {
+    id: 'first-mission',
+    label: 'Mission Set',
+    description: 'Set your first daily commitment',
+    icon: Zap,
+    check: (data) => data.commitments.length >= 1,
+  },
+  {
+    id: 'deep-work',
+    label: 'Deep Work',
+    description: 'Completed 5 focus sessions with your goal met',
+    icon: Timer,
+    check: (data) => data.momentumSessions.filter((s) => s.goalCompleted === true).length >= 5,
+  },
+  {
+    id: 'habit-former',
+    label: 'Habit Former',
+    description: 'Kept a habit going for 7 days straight',
+    icon: Repeat,
+    check: (data) => {
+      const byHabit = {}
+      data.habitLogs.forEach((l) => {
+        byHabit[l.habitId] = byHabit[l.habitId] || []
+        byHabit[l.habitId].push(l.date)
+      })
+      return Object.values(byHabit).some((dates) => computeStreak(dates).current >= 7)
+    },
+  },
+  {
+    id: 'self-aware',
+    label: 'Self-Aware',
+    description: 'Wrote 3 nightly reflections',
+    icon: Moon,
+    check: (data) => data.reflections.length >= 3,
   },
 ]
 

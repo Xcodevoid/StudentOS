@@ -1,16 +1,19 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame, Zap } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { Card, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Checkbox, Input } from '../components/ui/Form'
 import { Badge, ProgressBar, EmptyState, StatCard, SectionTitle } from '../components/ui/Misc'
+import { ProgressRing } from '../components/ui/ProgressRing'
 import { computeGPA } from '../lib/gpa'
 import { countdownLabel, formatDate, isOverdue, isToday, isoWeekKey, currentWeekRangeLabel, sortByDateAsc, parseLocalDate } from '../lib/dates'
 import { seedDemoData } from '../lib/seed'
 import { computeStreak } from '../lib/streak'
 import { computeBadges } from '../lib/badges'
 import { EXAM_TYPES } from '../lib/examTypes'
+import { computeMomentumScore, todayKey } from '../lib/momentum'
 
 export default function Dashboard() {
   const { data, addItem, toggleItem, updateItem, removeItem, setProfile, replaceAll, recordActivityToday } = useStore()
@@ -21,6 +24,9 @@ export default function Dashboard() {
   const gpa = useMemo(() => computeGPA(data.classes), [data.classes])
   const streak = useMemo(() => computeStreak(data.streak.datesActive), [data.streak.datesActive])
   const badges = useMemo(() => computeBadges(data, streak), [data, streak])
+
+  const momentum = useMemo(() => computeMomentumScore(data), [data])
+  const todaysMission = useMemo(() => data.commitments.filter((c) => c.date === todayKey()), [data.commitments])
 
   const minutesStudiedThisWeek = useMemo(() => {
     const weekKey = isoWeekKey()
@@ -127,6 +133,32 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Momentum */}
+      <Link to="/momentum" className="block">
+        <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
+          <ProgressRing
+            value={momentum.score ?? 0}
+            size={64}
+            strokeWidth={6}
+            tone={momentum.score === null ? 'accent' : momentum.score >= 65 ? 'green' : momentum.score >= 40 ? 'amber' : 'red'}
+          >
+            <span className="text-[16px] font-semibold text-neutral-900 dark:text-white">{momentum.score ?? <Zap size={18} className="text-accent-500" />}</span>
+          </ProgressRing>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Momentum</p>
+            <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">
+              {momentum.tier || "Set today's mission to get your first score"}
+            </p>
+            <p className="text-[12px] text-neutral-400 mt-0.5">
+              {todaysMission.length > 0
+                ? `${todaysMission.filter((c) => c.done).length}/${todaysMission.length} today's mission done`
+                : 'No mission set for today'}
+            </p>
+          </div>
+          <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
+        </Card>
+      </Link>
 
       {/* Progress overview */}
       <div>

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, GraduationCap, CalendarClock, Sparkles, Compass, CalendarDays, Settings, GalleryVerticalEnd, Cloud, CloudOff } from 'lucide-react'
+import { LayoutDashboard, GraduationCap, CalendarClock, Sparkles, Compass, CalendarDays, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
@@ -9,6 +9,7 @@ import MigrationPrompt from './MigrationPrompt'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/momentum', label: 'Momentum', mobileLabel: 'Boost', icon: Zap },
   { to: '/academics', label: 'Academics', icon: GraduationCap },
   { to: '/exams', label: 'Exams', icon: CalendarClock },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
@@ -137,13 +138,13 @@ export default function Layout() {
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[9.5px] font-medium transition-colors ${
+              `flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[9px] font-medium transition-colors ${
                 isActive ? 'text-accent-600 dark:text-accent-400' : 'text-neutral-400'
               }`
             }
           >
-            <item.icon size={18} strokeWidth={2} />
-            <span className="truncate max-w-[52px]">{item.mobileLabel || item.label}</span>
+            <item.icon size={17} strokeWidth={2} />
+            <span className="truncate max-w-[48px]">{item.mobileLabel || item.label}</span>
           </NavLink>
         ))}
       </nav>

@@ -153,12 +153,74 @@ create table if not exists study_sessions (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Momentum: self-discipline system ----------
+create table if not exists commitments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default '',
+  why text not null default '',
+  estimated_minutes numeric,
+  deadline text not null default '',
+  date date not null default current_date,
+  done boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists momentum_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  commitment_id uuid references commitments(id) on delete set null,
+  task_label text not null default '',
+  planned_minutes numeric not null default 0,
+  actual_minutes numeric not null default 0,
+  goal_completed boolean,
+  focus_rating numeric,
+  date date,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists distractions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  description text not null default '',
+  minutes_lost numeric not null default 0,
+  date date,
+  time text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists habits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default '',
+  archived boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists habit_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  habit_id uuid not null references habits(id) on delete cascade,
+  date date not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists reflections (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  date date not null,
+  accomplished text not null default '',
+  blocked text not null default '',
+  improve text not null default '',
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -181,3 +243,12 @@ create index if not exists idx_goals_user on goals(user_id);
 create index if not exists idx_tasks_user on tasks(user_id);
 create index if not exists idx_study_sessions_user on study_sessions(user_id);
 create index if not exists idx_classes_user on classes(user_id);
+create index if not exists idx_commitments_user on commitments(user_id);
+create index if not exists idx_commitments_date on commitments(date);
+create index if not exists idx_momentum_sessions_user on momentum_sessions(user_id);
+create index if not exists idx_distractions_user on distractions(user_id);
+create index if not exists idx_habits_user on habits(user_id);
+create index if not exists idx_habit_logs_user on habit_logs(user_id);
+create index if not exists idx_habit_logs_habit on habit_logs(habit_id);
+create index if not exists idx_reflections_user on reflections(user_id);
+create index if not exists idx_reflections_date on reflections(date);
