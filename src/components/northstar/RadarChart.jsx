@@ -10,7 +10,7 @@ const TONE = {
 // per axis. Grid rings are solid hairlines; the polygon is a soft ~10% wash
 // with a 2px stroke; vertex dots carry a surface-color ring so they read
 // cleanly where spokes cross them.
-export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels = true, children }) {
+export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels = true }) {
   const center = size / 2
   const labelGutter = showLabels ? 46 : 8
   const maxR = center - labelGutter
@@ -76,12 +76,7 @@ export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels
               </foreignObject>
             )
           })}
-        {/* Opaque mask so the center label never has to compete with the
-            polygon/grid behind it — vertices near the middle (low scores)
-            would otherwise collide with the text. */}
-        {children && <circle cx={center} cy={center} r={size * 0.145} className="fill-white dark:fill-neutral-900" />}
       </svg>
-      {children && <div className="absolute inset-0 flex items-center justify-center pointer-events-none">{children}</div>}
     </div>
   )
 }

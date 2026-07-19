@@ -32,18 +32,17 @@ export default function NorthStar() {
       </Card>
 
       <Card className="p-6 flex flex-col lg:flex-row items-center gap-8">
-        <div className="flex flex-col items-center gap-2 flex-shrink-0">
-          <RadarChart dimensions={northStar.dimensions} tone={overallTone} size={300}>
-            <span className="text-[32px] font-semibold text-neutral-900 dark:text-white leading-none">
+        <RadarChart dimensions={northStar.dimensions} tone={overallTone} size={300} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2.5 mb-3">
+            <span className="text-[40px] font-semibold text-neutral-900 dark:text-white leading-none">
               {northStar.overallScore ?? '—'}
             </span>
-          </RadarChart>
-          <div className="text-center">
-            <p className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400">Overall</p>
-            <p className="text-[12px] text-neutral-400">{northStar.overallTier || 'Just getting started'}</p>
+            <div>
+              <p className="text-[13px] font-medium text-neutral-500 dark:text-neutral-400 leading-tight">Overall</p>
+              <p className="text-[12px] text-neutral-400 leading-tight">{northStar.overallTier || 'Just getting started'}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">How this grows</p>
           <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
             Every dimension is built from real evidence, not points you can farm. Tag a Portfolio project or a College Prep

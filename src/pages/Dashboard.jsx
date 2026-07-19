@@ -164,13 +164,16 @@ export default function Dashboard() {
       {/* North Star */}
       <Link to="/north-star" className="block">
         <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
-          <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={72} showLabels={false}>
-            <span className="text-[16px] font-semibold text-neutral-900 dark:text-white">
-              {northStar.overallScore ?? <Star size={18} className="text-accent-500" />}
-            </span>
-          </RadarChart>
+          <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={64} showLabels={false} />
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">North Star</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">North Star</p>
+              {northStar.overallScore !== null ? (
+                <span className="text-[13px] font-semibold text-accent-600 dark:text-accent-400">{northStar.overallScore}</span>
+              ) : (
+                <Star size={14} className="text-accent-500" />
+              )}
+            </div>
             <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">
               {northStar.overallTier || 'Tag a project or activity to start your growth map'}
             </p>
