@@ -36,6 +36,10 @@ export function defaultData() {
     streak: { datesActive: [] },
     badges: { seen: [] },
     notifications: { remindersNotified: {} },
+    northStar: {
+      identity: '',
+      goals: { community: '', leadership: '', impact: '', skills: '', curiosity: '', character: '' },
+    },
   }
 }
 
@@ -52,6 +56,11 @@ export function loadData() {
       streak: { ...base.streak, ...parsed.streak },
       badges: { ...base.badges, ...parsed.badges },
       notifications: { ...base.notifications, ...parsed.notifications },
+      northStar: {
+        ...base.northStar,
+        ...parsed.northStar,
+        goals: { ...base.northStar.goals, ...parsed.northStar?.goals },
+      },
     }
   } catch {
     return defaultData()

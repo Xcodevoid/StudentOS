@@ -17,6 +17,17 @@ export function seedDemoData() {
       gpaScale: 4.0,
       onboarded: true,
     },
+    northStar: {
+      identity: 'A builder who uses technology to help underserved communities — someone who leads by doing, not just talking.',
+      goals: {
+        community: 'Grow the tutoring program to 3 schools',
+        leadership: 'Hand off Robotics Club to a strong successor',
+        impact: 'Get PathwAI to 500 real users',
+        skills: 'Ship a full-stack app completely solo',
+        curiosity: 'Publish the bioinformatics research',
+        character: 'Keep a 30-day streak without missing a day',
+      },
+    },
     classes: [
       { id: uid(), name: 'AP Calculus BC', subject: 'Math', term: 'Fall 2026', credits: 1, weight: 'ap', grade: 96 },
       { id: uid(), name: 'AP Computer Science A', subject: 'CS', term: 'Fall 2026', credits: 1, weight: 'ap', grade: 98 },
@@ -52,6 +63,7 @@ export function seedDemoData() {
         link: 'https://github.com',
         tags: ['React', 'Python', 'Machine Learning'],
         featured: true,
+        dimensions: ['skills', 'impact'],
       },
       {
         id: uid(),
@@ -63,6 +75,7 @@ export function seedDemoData() {
         link: '',
         tags: ['Computer Vision', 'Research'],
         featured: true,
+        dimensions: ['curiosity', 'impact'],
       },
       {
         id: uid(),
@@ -74,6 +87,7 @@ export function seedDemoData() {
         link: '',
         tags: ['Bioinformatics', 'Data Analysis'],
         featured: false,
+        dimensions: ['curiosity', 'skills'],
       },
       {
         id: uid(),
@@ -85,6 +99,7 @@ export function seedDemoData() {
         link: 'https://example.com',
         tags: ['Web Design'],
         featured: false,
+        dimensions: ['skills'],
       },
     ],
     activities: [
@@ -98,6 +113,7 @@ export function seedDemoData() {
         startDate: d(-400),
         endDate: '',
         description: 'Lead a 15-person team building competition robots; mentor underclassmen in CAD and programming.',
+        dimensions: ['leadership', 'skills'],
       },
       {
         id: uid(),
@@ -109,6 +125,7 @@ export function seedDemoData() {
         startDate: d(-300),
         endDate: '',
         description: 'Weekly math and science tutoring for middle school students from low-income families.',
+        dimensions: ['community'],
       },
       {
         id: uid(),
@@ -120,6 +137,7 @@ export function seedDemoData() {
         startDate: d(-70),
         endDate: d(-10),
         description: 'Built internal dashboard tools using React and worked with the data team on patient scheduling features.',
+        dimensions: ['skills', 'leadership'],
       },
     ],
     deadlines: [

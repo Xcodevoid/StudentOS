@@ -13,6 +13,7 @@ import Portfolio from './pages/Portfolio'
 import CollegePrep from './pages/CollegePrep'
 import CalendarPage from './pages/Calendar'
 import Momentum from './pages/Momentum'
+import NorthStar from './pages/NorthStar'
 import SettingsPage from './pages/Settings'
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+                  <Route path="/north-star" element={<NorthStar />} />
                   <Route path="/momentum" element={<Momentum />} />
                   <Route path="/academics" element={<Academics />} />
                   <Route path="/exams" element={<Exams />} />

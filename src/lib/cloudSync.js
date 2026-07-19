@@ -21,11 +21,12 @@ export async function pullAllFromCloud(userId) {
   })
 
   if (profileRow) {
-    const { profile, streak, badges, notifications } = profileFromDb(profileRow)
+    const { profile, streak, badges, notifications, northStar } = profileFromDb(profileRow)
     assembled.profile = profile
     assembled.streak = streak
     assembled.badges = badges
     assembled.notifications = notifications
+    assembled.northStar = northStar
   }
 
   return assembled
@@ -54,6 +55,7 @@ export async function pushAllToCloud(userId, data) {
       streakDates: data.streak?.datesActive || [],
       badgesSeen: data.badges?.seen || [],
       remindersNotified: data.notifications?.remindersNotified || {},
+      northStar: data.northStar || {},
     },
     userId
   )

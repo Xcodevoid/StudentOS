@@ -7,6 +7,8 @@ import { Field, Input, Select, Textarea, Checkbox } from '../components/ui/Form'
 import { Modal } from '../components/ui/Modal'
 import { Badge, EmptyState } from '../components/ui/Misc'
 import { formatDate } from '../lib/dates'
+import { DEFAULT_PROJECT_DIMENSIONS } from '../lib/northStar'
+import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
 
 const TYPES = {
   project: { label: 'Project', icon: Code2, tone: 'accent' },
@@ -16,7 +18,7 @@ const TYPES = {
   website: { label: 'Website', icon: Globe, tone: 'neutral' },
 }
 
-const emptyProject = { title: '', type: 'project', role: '', date: '', description: '', link: '', tags: '', featured: false }
+const emptyProject = { title: '', type: 'project', role: '', date: '', description: '', link: '', tags: '', featured: false, dimensions: DEFAULT_PROJECT_DIMENSIONS.project }
 
 export default function Portfolio() {
   const [view, setView] = useState('manage')
@@ -64,7 +66,7 @@ function ManageView() {
     setModalOpen(true)
   }
   function openEdit(p) {
-    setForm({ ...p, tags: (p.tags || []).join(', ') })
+    setForm({ ...p, tags: (p.tags || []).join(', '), dimensions: p.dimensions?.length ? p.dimensions : DEFAULT_PROJECT_DIMENSIONS[p.type] || [] })
     setEditingId(p.id)
     setModalOpen(true)
   }
@@ -174,6 +176,9 @@ function ManageView() {
               <Input value={form.tags} onChange={(e) => setForm((prev) => ({ ...prev, tags: e.target.value }))} placeholder="React, Machine Learning" />
             </Field>
           </div>
+          <Field label="Which parts of you does this grow?" hint="Tags it for your North Star map.">
+            <DimensionTagPicker value={form.dimensions} onChange={(dimensions) => setForm((prev) => ({ ...prev, dimensions }))} />
+          </Field>
           <label className="flex items-center gap-2 text-[13.5px] text-neutral-600 dark:text-neutral-300 cursor-pointer w-fit">
             <Checkbox checked={form.featured} onChange={() => setForm((prev) => ({ ...prev, featured: !form.featured }))} />
             Feature at the top of my portfolio

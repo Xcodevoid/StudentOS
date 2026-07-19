@@ -18,8 +18,12 @@ create table if not exists profiles (
   streak_dates jsonb not null default '[]'::jsonb,
   badges_seen jsonb not null default '[]'::jsonb,
   reminders_notified jsonb not null default '{}'::jsonb,
+  north_star jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+-- Adds the column for projects created before North Star existed.
+alter table profiles add column if not exists north_star jsonb not null default '{}'::jsonb;
 
 alter table profiles enable row level security;
 create policy "profiles: owner full access" on profiles
@@ -97,8 +101,11 @@ create table if not exists projects (
   link text not null default '',
   tags jsonb not null default '[]'::jsonb,
   featured boolean not null default false,
+  dimensions jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table projects add column if not exists dimensions jsonb not null default '[]'::jsonb;
 
 create table if not exists activities (
   id uuid primary key default gen_random_uuid(),
@@ -111,8 +118,11 @@ create table if not exists activities (
   start_date date,
   end_date date,
   description text not null default '',
+  dimensions jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table activities add column if not exists dimensions jsonb not null default '[]'::jsonb;
 
 create table if not exists deadlines (
   id uuid primary key default gen_random_uuid(),

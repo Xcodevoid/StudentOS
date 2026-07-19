@@ -109,6 +109,7 @@ export function profileToDb(profile, extras, userId) {
     streak_dates: extras.streakDates,
     badges_seen: extras.badgesSeen,
     reminders_notified: extras.remindersNotified,
+    north_star: extras.northStar,
     updated_at: new Date().toISOString(),
   }
 }
@@ -127,5 +128,12 @@ export function profileFromDb(row) {
     streak: { datesActive: row.streak_dates || [] },
     badges: { seen: row.badges_seen || [] },
     notifications: { remindersNotified: row.reminders_notified || {} },
+    northStar: {
+      identity: row.north_star?.identity || '',
+      goals: {
+        community: '', leadership: '', impact: '', skills: '', curiosity: '', character: '',
+        ...row.north_star?.goals,
+      },
+    },
   }
 }

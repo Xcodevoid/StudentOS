@@ -3,15 +3,15 @@ import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { getReminderItems, EXAM_MILESTONES, KIND_LABEL } from '../lib/reminders'
 import { daysUntil } from '../lib/dates'
-import { computeStreak } from '../lib/streak'
-import { computeBadges } from '../lib/badges'
+import { computeNorthStar } from '../lib/northStar'
 
 const CHECK_INTERVAL_MS = 60_000
 
 // Mounted once near the app root. Two jobs, both silent unless something is
 // actually due: (1) fire browser notifications for newly-due items and exam
 // countdown milestones, deduped via data.notifications.remindersNotified;
-// (2) toast newly-unlocked badges.
+// (2) toast a North Star dimension crossing into a new tier (reuses the same
+// "seen" dedup store that badge unlocks used to).
 export default function BackgroundEngine() {
   const { data, isReminded, markReminded, markBadgesSeen } = useStore()
   const { push } = useToast()
@@ -49,16 +49,18 @@ export default function BackgroundEngine() {
   }, [data])
 
   useEffect(() => {
-    const streak = computeStreak(data.streak.datesActive)
-    const badges = computeBadges(data, streak)
-    const newlyUnlocked = badges.filter((b) => b.unlocked && !data.badges.seen.includes(b.id))
-    if (newlyUnlocked.length === 0) return
-    newlyUnlocked.forEach((b) => {
-      push(`Badge unlocked: ${b.label}`, { tone: 'celebrate', description: b.description })
+    const northStar = computeNorthStar(data)
+    const newMilestones = northStar.dimensions
+      .filter((d) => d.tier)
+      .map((d) => ({ id: `northstar-${d.id}-${d.tier}`, label: d.label, tier: d.tier }))
+      .filter((m) => !data.badges.seen.includes(m.id))
+    if (newMilestones.length === 0) return
+    newMilestones.forEach((m) => {
+      push(`${m.label} is growing`, { tone: 'celebrate', description: `Now ${m.tier} — keep building evidence.` })
     })
-    markBadgesSeen(newlyUnlocked.map((b) => b.id))
+    markBadgesSeen(newMilestones.map((m) => m.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.classes, data.projects, data.exams, data.studyTasks, data.deadlines, data.studySessions, data.streak])
+  }, [data.projects, data.activities, data.habits, data.habitLogs, data.reflections, data.commitments])
 
   return null
 }

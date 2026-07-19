@@ -65,7 +65,12 @@ export function StoreProvider({ children }) {
       const snap = dataRef.current
       const row = profileToDb(
         snap.profile,
-        { streakDates: snap.streak.datesActive, badgesSeen: snap.badges.seen, remindersNotified: snap.notifications.remindersNotified },
+        {
+          streakDates: snap.streak.datesActive,
+          badgesSeen: snap.badges.seen,
+          remindersNotified: snap.notifications.remindersNotified,
+          northStar: snap.northStar,
+        },
         user.id
       )
       supabase.from('profiles').upsert(row).then(({ error }) => error && console.error(error))
@@ -141,6 +146,21 @@ export function StoreProvider({ children }) {
     [scheduleProfileSync]
   )
 
+  const setNorthStar = useCallback(
+    (patch) => {
+      setData((prev) => ({
+        ...prev,
+        northStar: {
+          ...prev.northStar,
+          ...patch,
+          goals: patch.goals ? { ...prev.northStar.goals, ...patch.goals } : prev.northStar.goals,
+        },
+      }))
+      scheduleProfileSync()
+    },
+    [scheduleProfileSync]
+  )
+
   const recordActivityToday = useCallback(() => {
     setData((prev) => ({ ...prev, streak: { ...prev.streak, datesActive: recordToday(prev.streak.datesActive) } }))
     scheduleProfileSync()
@@ -172,7 +192,11 @@ export function StoreProvider({ children }) {
     setData(empty)
     if (cloudActive) {
       wipeAllCloud(user.id)
-        .then(() => supabase.from('profiles').upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {} }, user.id)))
+        .then(() =>
+          supabase
+            .from('profiles')
+            .upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {}, northStar: empty.northStar }, user.id))
+        )
         .catch((err) => console.error(err))
     }
   }, [cloudActive, user])
@@ -193,6 +217,11 @@ export function StoreProvider({ children }) {
         streak: { ...base.streak, ...next.streak },
         badges: { ...base.badges, ...next.badges },
         notifications: { ...base.notifications, ...next.notifications },
+        northStar: {
+          ...base.northStar,
+          ...next.northStar,
+          goals: { ...base.northStar.goals, ...next.northStar?.goals },
+        },
       }
       setData(merged)
       if (cloudActive) pushAllToCloud(user.id, merged).catch((err) => console.error(err))
@@ -219,6 +248,7 @@ export function StoreProvider({ children }) {
       removeItem,
       toggleItem,
       setProfile,
+      setNorthStar,
       resetAll,
       loadDemo,
       replaceAll,
@@ -239,6 +269,7 @@ export function StoreProvider({ children }) {
       removeItem,
       toggleItem,
       setProfile,
+      setNorthStar,
       resetAll,
       loadDemo,
       replaceAll,

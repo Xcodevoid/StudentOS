@@ -1,19 +1,20 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame, Zap } from 'lucide-react'
+import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame, Zap, Star } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { Card, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Checkbox, Input } from '../components/ui/Form'
 import { Badge, ProgressBar, EmptyState, StatCard, SectionTitle } from '../components/ui/Misc'
 import { ProgressRing } from '../components/ui/ProgressRing'
+import { RadarChart } from '../components/northstar/RadarChart'
 import { computeGPA } from '../lib/gpa'
 import { countdownLabel, formatDate, isOverdue, isToday, isoWeekKey, currentWeekRangeLabel, sortByDateAsc, parseLocalDate } from '../lib/dates'
 import { seedDemoData } from '../lib/seed'
 import { computeStreak } from '../lib/streak'
-import { computeBadges } from '../lib/badges'
 import { EXAM_TYPES } from '../lib/examTypes'
 import { computeMomentumScore, todayKey } from '../lib/momentum'
+import { computeNorthStar, tierTone } from '../lib/northStar'
 
 export default function Dashboard() {
   const { data, addItem, toggleItem, updateItem, removeItem, setProfile, replaceAll, recordActivityToday } = useStore()
@@ -23,9 +24,9 @@ export default function Dashboard() {
 
   const gpa = useMemo(() => computeGPA(data.classes), [data.classes])
   const streak = useMemo(() => computeStreak(data.streak.datesActive), [data.streak.datesActive])
-  const badges = useMemo(() => computeBadges(data, streak), [data, streak])
 
   const momentum = useMemo(() => computeMomentumScore(data), [data])
+  const northStar = useMemo(() => computeNorthStar(data), [data])
   const todaysMission = useMemo(() => data.commitments.filter((c) => c.date === todayKey()), [data.commitments])
 
   const minutesStudiedThisWeek = useMemo(() => {
@@ -160,6 +161,25 @@ export default function Dashboard() {
         </Card>
       </Link>
 
+      {/* North Star */}
+      <Link to="/north-star" className="block">
+        <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
+          <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={72} showLabels={false}>
+            <span className="text-[16px] font-semibold text-neutral-900 dark:text-white">
+              {northStar.overallScore ?? <Star size={18} className="text-accent-500" />}
+            </span>
+          </RadarChart>
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">North Star</p>
+            <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">
+              {northStar.overallTier || 'Tag a project or activity to start your growth map'}
+            </p>
+            <p className="text-[12px] text-neutral-400 mt-0.5">Your holistic identity — beyond grades</p>
+          </div>
+          <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
+        </Card>
+      </Link>
+
       {/* Progress overview */}
       <div>
         <SectionTitle>Progress Overview</SectionTitle>
@@ -280,32 +300,6 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      {/* Badges */}
-      <Card className="p-5">
-        <CardHeader title="Achievements" subtitle={`${badges.filter((b) => b.unlocked).length}/${badges.length} unlocked`} />
-        <div className="mt-4 grid grid-cols-3 sm:grid-cols-5 gap-3">
-          {badges.map((b) => (
-            <div
-              key={b.id}
-              title={b.description}
-              className={`flex flex-col items-center text-center gap-1.5 py-3 rounded-xl transition-colors ${
-                b.unlocked ? 'bg-accent-50 dark:bg-accent-500/10' : 'bg-black/[0.03] dark:bg-white/5'
-              }`}
-            >
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                  b.unlocked ? 'bg-accent-500 text-white' : 'bg-black/10 dark:bg-white/10 text-neutral-400'
-                }`}
-              >
-                <b.icon size={16} strokeWidth={2} />
-              </div>
-              <p className={`text-[11px] font-medium leading-tight ${b.unlocked ? 'text-neutral-900 dark:text-white' : 'text-neutral-400'}`}>
-                {b.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </Card>
     </div>
   )
 }

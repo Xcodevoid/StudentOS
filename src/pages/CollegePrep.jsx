@@ -7,6 +7,8 @@ import { Field, Input, Select, Textarea } from '../components/ui/Form'
 import { Modal } from '../components/ui/Modal'
 import { Badge, EmptyState } from '../components/ui/Misc'
 import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dates'
+import { DEFAULT_ACTIVITY_DIMENSIONS } from '../lib/northStar'
+import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
 
 const ACTIVITY_TYPES = {
   activity: { label: 'Activity', icon: Users, tone: 'accent' },
@@ -28,7 +30,17 @@ const DEADLINE_STATUS = {
   submitted: { label: 'Submitted', tone: 'green' },
 }
 
-const emptyActivity = { title: '', category: 'activity', org: '', hoursPerWeek: '', weeksPerYear: '', startDate: '', endDate: '', description: '' }
+const emptyActivity = {
+  title: '',
+  category: 'activity',
+  org: '',
+  hoursPerWeek: '',
+  weeksPerYear: '',
+  startDate: '',
+  endDate: '',
+  description: '',
+  dimensions: DEFAULT_ACTIVITY_DIMENSIONS.activity,
+}
 const emptyDeadline = { title: '', schoolName: '', date: '', type: 'regular', status: 'not-started', notes: '' }
 
 export default function CollegePrep() {
@@ -248,7 +260,7 @@ function ActivitiesCard() {
     setModalOpen(true)
   }
   function openEdit(a) {
-    setForm(a)
+    setForm({ ...a, dimensions: a.dimensions?.length ? a.dimensions : DEFAULT_ACTIVITY_DIMENSIONS[a.category] || [] })
     setEditingId(a.id)
     setModalOpen(true)
   }
@@ -347,6 +359,9 @@ function ActivitiesCard() {
           </div>
           <Field label="Description">
             <Textarea value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="What did you do? What was your impact?" />
+          </Field>
+          <Field label="Which parts of you does this grow?" hint="Tags it for your North Star map.">
+            <DimensionTagPicker value={form.dimensions} onChange={(dimensions) => setForm((prev) => ({ ...prev, dimensions }))} />
           </Field>
         </form>
       </Modal>

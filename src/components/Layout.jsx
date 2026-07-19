@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, GraduationCap, CalendarClock, Sparkles, Compass, CalendarDays, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap } from 'lucide-react'
+import { LayoutDashboard, GraduationCap, CalendarClock, Sparkles, Compass, CalendarDays, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap, Star } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
@@ -9,6 +9,7 @@ import MigrationPrompt from './MigrationPrompt'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/north-star', label: 'North Star', mobileLabel: 'Star', icon: Star },
   { to: '/momentum', label: 'Momentum', mobileLabel: 'Boost', icon: Zap },
   { to: '/academics', label: 'Academics', icon: GraduationCap },
   { to: '/exams', label: 'Exams', icon: CalendarClock },
