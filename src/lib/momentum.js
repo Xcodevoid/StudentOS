@@ -27,15 +27,29 @@ export function computeMomentumScore(data) {
   const week7 = lastNDays(7)
   const components = {}
 
+  // Commitments and focus sessions are daily constructs, so — like habits
+  // below — they're scored as a per-day rate averaged over the last 7 days,
+  // not a raw rate over however many you happened to log. Otherwise a
+  // single task set and finished today reads as "100% — Excellent
+  // momentum," while doing the same thing every day for a week scores no
+  // higher; the two shouldn't be indistinguishable.
   const commitmentsThisWeek = data.commitments.filter((c) => week7.includes(c.date))
   if (commitmentsThisWeek.length > 0) {
-    components.commitments = Math.round((commitmentsThisWeek.filter((c) => c.done).length / commitmentsThisWeek.length) * 100)
+    const dailyRates = week7.map((day) => {
+      const dayCommitments = commitmentsThisWeek.filter((c) => c.date === day)
+      if (dayCommitments.length === 0) return 0
+      return dayCommitments.filter((c) => c.done).length / dayCommitments.length
+    })
+    components.commitments = Math.round((dailyRates.reduce((a, b) => a + b, 0) / 7) * 100)
   }
 
   const sessionsThisWeek = data.momentumSessions.filter((s) => week7.includes(s.date))
   if (sessionsThisWeek.length > 0) {
-    const completed = sessionsThisWeek.filter((s) => s.goalCompleted === true).length
-    components.focus = Math.min(Math.round((completed / 7) * 100), 100)
+    // Distinct days with a completed session — not raw session count, so
+    // batching several sessions in one sitting can't substitute for
+    // showing up on separate days.
+    const successfulDays = new Set(sessionsThisWeek.filter((s) => s.goalCompleted === true).map((s) => s.date))
+    components.focus = Math.round((successfulDays.size / 7) * 100)
   }
 
   const activeHabits = data.habits.filter((h) => !h.archived)
