@@ -35,7 +35,7 @@ export default function Layout() {
       <MigrationPrompt />
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
+      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 z-30 border-r border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2 px-4 h-16 flex-shrink-0">
           <div className="flex items-center gap-2 pl-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-accent-500 flex items-center justify-center flex-shrink-0">
