@@ -10,6 +10,7 @@ import { Badge, EmptyState } from '../components/ui/Misc'
 import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dates'
 import { DEFAULT_ACTIVITY_DIMENSIONS } from '../lib/northStar'
 import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
+import { PolishChecklist } from '../components/collegeprep/PolishChecklist'
 import {
   COMMON_APP_CATEGORIES,
   DEFAULT_COMMON_APP_TYPE,
@@ -375,6 +376,7 @@ function ActivitiesCard() {
           </div>
           <Field label="Description">
             <Textarea value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="What did you do? What was your impact?" />
+            <PolishChecklist text={form.description} dimensions={form.dimensions} />
           </Field>
           <Field label="Which parts of you does this grow?" hint="Tags it for your North Star map.">
             <DimensionTagPicker value={form.dimensions} onChange={(dimensions) => setForm((prev) => ({ ...prev, dimensions }))} />
@@ -516,6 +518,7 @@ function ExportRow({ activity, rank, overLimit }) {
           onBlur={commitSummary}
           placeholder="What did you accomplish? What recognition did you receive?"
         />
+        <PolishChecklist text={summary} dimensions={activity.dimensions} />
       </Field>
     </Card>
   )
