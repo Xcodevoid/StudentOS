@@ -2,14 +2,18 @@ import { computeStreak } from './streak'
 import { isoWeekKey } from './dates'
 import { dateKey } from './calendarGrid'
 
-export function todayKey() {
-  return dateKey(new Date())
+export function todayKey(ref = new Date()) {
+  return dateKey(ref)
 }
 
-export function lastNDays(n) {
+// `ref` lets callers compute "the last N days as of some past date" instead
+// of always the real, live today — used by Growth Analytics to recompute a
+// historical North Star snapshot. Defaults to real today, so every existing
+// call site behaves exactly as before.
+export function lastNDays(n, ref = new Date()) {
   const days = []
   for (let i = 0; i < n; i++) {
-    const d = new Date()
+    const d = new Date(ref)
     d.setDate(d.getDate() - i)
     days.push(dateKey(d))
   }

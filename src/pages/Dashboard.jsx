@@ -190,7 +190,7 @@ export default function Dashboard() {
           <StatCard label="Weighted GPA" value={gpa.weighted ?? '—'} sub={gpa.unweighted ? `${gpa.unweighted} unweighted` : 'No grades yet'} tone="accent" />
           <StatCard label="Assignments Done" value={`${assignmentProgress.done}/${assignmentProgress.total}`} sub="This term" />
           <StatCard label="Portfolio Items" value={data.projects.length} sub="Projects & achievements" />
-          <StatCard label="Deadlines Ahead" value={data.deadlines.filter((d) => !isOverdue(d.date)).length} sub="College prep" />
+          <StatCard label="Opportunities Ahead" value={data.opportunities.filter((d) => !isOverdue(d.date)).length} sub="College prep" />
           <StatCard label="Day Streak" value={streak.current} sub={streak.current > 0 ? 'Keep it up' : 'Complete a task today'} />
           <StatCard label="Studied This Week" value={minutesStudiedThisWeek > 0 ? `${minutesStudiedThisWeek}m` : '—'} sub="Focus sessions" />
         </div>

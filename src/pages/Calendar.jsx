@@ -30,9 +30,9 @@ export default function CalendarPage() {
     }
     data.assignments.forEach((a) => push(a.dueDate, { id: a.id, kind: 'assignment', title: a.title, done: a.status === 'done' }))
     data.exams.forEach((e) => push(e.date, { id: e.id, kind: 'exam', title: e.name }))
-    data.deadlines.forEach((d) => push(d.date, { id: d.id, kind: 'deadline', title: d.title, done: d.status === 'submitted' }))
+    data.opportunities.forEach((d) => push(d.date, { id: d.id, kind: 'deadline', title: d.title, done: d.status === 'submitted' }))
     return map
-  }, [data.assignments, data.exams, data.deadlines])
+  }, [data.assignments, data.exams, data.opportunities])
 
   const days = useMemo(() => buildMonthGrid(cursor.getFullYear(), cursor.getMonth()), [cursor])
   const monthLabel = cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })

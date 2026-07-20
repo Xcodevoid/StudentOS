@@ -14,7 +14,7 @@ export function getReminderItems(data) {
     .filter((e) => e.date)
     .forEach((e) => items.push({ id: e.id, kind: 'exam', title: e.name, date: e.date, path: '/exams' }))
 
-  data.deadlines
+  data.opportunities
     .filter((d) => d.status !== 'submitted' && d.date)
     .forEach((d) => items.push({ id: d.id, kind: 'deadline', title: d.title, date: d.date, path: '/college-prep' }))
 
@@ -31,6 +31,6 @@ export function bucketReminders(items) {
   return { overdue, today, upcoming }
 }
 
-export const KIND_LABEL = { assignment: 'Assignment', exam: 'Exam', deadline: 'Deadline' }
+export const KIND_LABEL = { assignment: 'Assignment', exam: 'Exam', deadline: 'Opportunity' }
 
 export const EXAM_MILESTONES = [30, 14, 7, 3, 1, 0]

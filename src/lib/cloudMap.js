@@ -10,7 +10,7 @@ export const TABLES = {
   studyTasks: 'study_tasks',
   projects: 'projects',
   activities: 'activities',
-  deadlines: 'deadlines',
+  opportunities: 'deadlines',
   goals: 'goals',
   tasks: 'tasks',
   studySessions: 'study_sessions',
@@ -23,10 +23,13 @@ export const TABLES = {
 }
 
 // entity -> { appKey: dbColumn }
+const IMPACT_TRACKER_FIELDS = { action: 'action_taken', impactWho: 'impact_who', growth: 'growth_reflection' }
+
 const FIELD_MAP = {
   assignments: { classId: 'class_id', dueDate: 'due_date' },
   exams: { examType: 'exam_type' },
   studyTasks: { examId: 'exam_id' },
+  projects: { ...IMPACT_TRACKER_FIELDS },
   activities: {
     hoursPerWeek: 'hours_per_week',
     weeksPerYear: 'weeks_per_year',
@@ -35,8 +38,9 @@ const FIELD_MAP = {
     commonAppType: 'common_app_type',
     commonAppPosition: 'common_app_position',
     commonAppSummary: 'common_app_summary',
+    ...IMPACT_TRACKER_FIELDS,
   },
-  deadlines: { schoolName: 'school_name' },
+  opportunities: { schoolName: 'school_name', applicationRound: 'application_round' },
   tasks: { dueDate: 'due_date' },
   studySessions: { examId: 'exam_id' },
   commitments: { estimatedMinutes: 'estimated_minutes' },
@@ -57,7 +61,7 @@ const NULLABLE_FIELDS = {
   studyTasks: ['examId'],
   projects: ['date'],
   activities: ['startDate', 'endDate', 'hoursPerWeek', 'weeksPerYear'],
-  deadlines: ['date'],
+  opportunities: ['date'],
   tasks: ['dueDate'],
   studySessions: ['examId', 'date'],
   commitments: ['estimatedMinutes', 'date'],

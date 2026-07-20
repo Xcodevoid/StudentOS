@@ -213,6 +213,9 @@ export function StoreProvider({ children }) {
       const merged = {
         ...base,
         ...next,
+        // Backups exported before Opportunities was renamed from "deadlines"
+        // should still import cleanly.
+        opportunities: next.opportunities || next.deadlines || [],
         profile: { ...base.profile, ...next.profile },
         streak: { ...base.streak, ...next.streak },
         badges: { ...base.badges, ...next.badges },

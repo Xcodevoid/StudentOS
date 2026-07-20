@@ -33,6 +33,7 @@ alter table profiles drop constraint if exists public_slug_format;
 alter table profiles add constraint public_slug_format check (public_slug is null or public_slug ~ '^[a-z0-9-]{3,32}$');
 
 alter table profiles enable row level security;
+drop policy if exists "profiles: owner full access" on profiles;
 create policy "profiles: owner full access" on profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);
 
@@ -109,10 +110,18 @@ create table if not exists projects (
   tags jsonb not null default '[]'::jsonb,
   featured boolean not null default false,
   dimensions jsonb not null default '[]'::jsonb,
+  problem text not null default '',
+  action_taken text not null default '',
+  impact_who text not null default '',
+  growth_reflection text not null default '',
   created_at timestamptz not null default now()
 );
 
 alter table projects add column if not exists dimensions jsonb not null default '[]'::jsonb;
+alter table projects add column if not exists problem text not null default '';
+alter table projects add column if not exists action_taken text not null default '';
+alter table projects add column if not exists impact_who text not null default '';
+alter table projects add column if not exists growth_reflection text not null default '';
 
 create table if not exists activities (
   id uuid primary key default gen_random_uuid(),
@@ -129,6 +138,10 @@ create table if not exists activities (
   common_app_type text not null default '',
   common_app_position text not null default '',
   common_app_summary text not null default '',
+  problem text not null default '',
+  action_taken text not null default '',
+  impact_who text not null default '',
+  growth_reflection text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -136,7 +149,16 @@ alter table activities add column if not exists dimensions jsonb not null defaul
 alter table activities add column if not exists common_app_type text not null default '';
 alter table activities add column if not exists common_app_position text not null default '';
 alter table activities add column if not exists common_app_summary text not null default '';
+alter table activities add column if not exists problem text not null default '';
+alter table activities add column if not exists action_taken text not null default '';
+alter table activities add column if not exists impact_who text not null default '';
+alter table activities add column if not exists growth_reflection text not null default '';
 
+-- "Opportunities" at the app level (competitions, research programs,
+-- internships, scholarships, summer programs, and college applications).
+-- The table stays named `deadlines` — only additive migrations happen here,
+-- consistent with every other table in this file — but the app reads/writes
+-- it as `data.opportunities` via the TABLES map in cloudMap.js.
 create table if not exists deadlines (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -146,8 +168,21 @@ create table if not exists deadlines (
   type text not null default 'regular',
   status text not null default 'not-started',
   notes text not null default '',
+  category text not null default 'college-application',
+  application_round text not null default '',
+  checklist jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
+
+alter table deadlines add column if not exists category text not null default 'college-application';
+alter table deadlines add column if not exists application_round text not null default '';
+alter table deadlines add column if not exists checklist jsonb not null default '[]'::jsonb;
+
+-- One-time backfill so deadlines created before this migration keep their
+-- meaning: their old `type` (early-action/early-decision/regular) becomes
+-- the new `application_round`, and they're tagged as college applications.
+update deadlines set application_round = type, category = 'college-application'
+  where type in ('early-action', 'early-decision', 'regular') and application_round = '';
 
 create table if not exists goals (
   id uuid primary key default gen_random_uuid(),

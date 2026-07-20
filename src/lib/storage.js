@@ -25,7 +25,7 @@ export function defaultData() {
     studyTasks: [],
     projects: [],
     activities: [],
-    deadlines: [],
+    opportunities: [],
     goals: [],
     tasks: [],
     studySessions: [],
@@ -54,6 +54,9 @@ export function loadData() {
     return {
       ...base,
       ...parsed,
+      // Opportunities used to be called "deadlines" — carry existing local
+      // data over under its new key rather than silently losing it.
+      opportunities: parsed.opportunities || parsed.deadlines || [],
       profile: { ...base.profile, ...parsed.profile },
       streak: { ...base.streak, ...parsed.streak },
       badges: { ...base.badges, ...parsed.badges },

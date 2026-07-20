@@ -86,9 +86,13 @@ export function tierTone(score) {
   return 'accent'
 }
 
-export function computeNorthStar(data) {
-  const week7 = lastNDays(7)
-  const month30 = lastNDays(30)
+// `asOf` lets Growth Analytics ask "what did North Star look like a month
+// ago?" by re-anchoring every internal "today"/"last N days" window to a
+// past date instead of the real live now. Defaults to real now, so a plain
+// computeNorthStar(data) call behaves exactly as before.
+export function computeNorthStar(data, asOf = new Date()) {
+  const week7 = lastNDays(7, asOf)
+  const month30 = lastNDays(30, asOf)
 
   const evidenceByDim = Object.fromEntries(DIMENSION_IDS.map((id) => [id, []]))
   const addEvidence = (dimId, entry) => {
@@ -129,7 +133,7 @@ export function computeNorthStar(data) {
   let bestHabitTitle = ''
   activeHabits.forEach((h) => {
     const dates = (data.habitLogs || []).filter((l) => l.habitId === h.id).map((l) => l.date)
-    const streak = computeStreak(dates).current
+    const streak = computeStreak(dates, asOf).current
     if (streak > bestStreak) {
       bestStreak = streak
       bestHabitTitle = h.title
@@ -139,7 +143,7 @@ export function computeNorthStar(data) {
     addEvidence('character', {
       id: 'character-habit-streak',
       title: `${bestStreak}-day streak on "${bestHabitTitle}"`,
-      date: todayKey(),
+      date: todayKey(asOf),
       weight: Math.min(30, Math.round(bestStreak * 1.5)),
       source: 'Momentum',
     })
@@ -150,7 +154,7 @@ export function computeNorthStar(data) {
     addEvidence('character', {
       id: 'character-reflections',
       title: `${recentReflections.length} nightly reflection${recentReflections.length === 1 ? '' : 's'} this month`,
-      date: [...recentReflections].sort((a, b) => b.date.localeCompare(a.date))[0]?.date || todayKey(),
+      date: [...recentReflections].sort((a, b) => b.date.localeCompare(a.date))[0]?.date || todayKey(asOf),
       weight: Math.min(20, recentReflections.length * 5),
       source: 'Momentum',
     })
@@ -162,7 +166,7 @@ export function computeNorthStar(data) {
     addEvidence('character', {
       id: 'character-follow-through',
       title: `${Math.round(rate * 100)}% of daily missions completed this month`,
-      date: todayKey(),
+      date: todayKey(asOf),
       weight: Math.min(20, Math.round(rate * 20)),
       source: 'Momentum',
     })
@@ -191,4 +195,28 @@ export function computeNorthStar(data) {
     overallScore,
     overallTier: overallScore !== null ? tierFor(overallScore) : null,
   }
+}
+
+// Reconstructs "what North Star looked like as of a past date" — used by
+// Growth Analytics to diff against the live score. Entries with no date
+// (or a date after the cutoff) are excluded, since we can't know they
+// existed yet; entries with no date at all simply never count toward a
+// historical snapshot (they still count in the live computeNorthStar(data)
+// call, which doesn't filter anything).
+//
+// Known limitation: dimension tags and fields like hoursPerWeek reflect
+// their *current* values, not what they were as of cutoffDateStr — nothing
+// in this data model is versioned, so retagging a project today reshapes
+// its contribution to past snapshots too. Acceptable for a "your growth
+// this month" trend line, not for precise historical audit.
+export function computeNorthStarAsOf(data, cutoffDateStr) {
+  const filtered = {
+    ...data,
+    projects: (data.projects || []).filter((p) => p.date && p.date <= cutoffDateStr),
+    activities: (data.activities || []).filter((a) => a.startDate && a.startDate <= cutoffDateStr),
+    habitLogs: (data.habitLogs || []).filter((l) => l.date && l.date <= cutoffDateStr),
+    reflections: (data.reflections || []).filter((r) => r.date && r.date <= cutoffDateStr),
+    commitments: (data.commitments || []).filter((c) => c.date && c.date <= cutoffDateStr),
+  }
+  return computeNorthStar(filtered, new Date(cutoffDateStr))
 }

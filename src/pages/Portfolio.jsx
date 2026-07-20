@@ -9,6 +9,7 @@ import { Badge, EmptyState } from '../components/ui/Misc'
 import { formatDate } from '../lib/dates'
 import { DEFAULT_PROJECT_DIMENSIONS } from '../lib/northStar'
 import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
+import { ImpactFraming } from '../components/collegeprep/ImpactFraming'
 
 const TYPES = {
   project: { label: 'Project', icon: Code2, tone: 'accent' },
@@ -18,7 +19,21 @@ const TYPES = {
   website: { label: 'Website', icon: Globe, tone: 'neutral' },
 }
 
-const emptyProject = { title: '', type: 'project', role: '', date: '', description: '', link: '', tags: '', featured: false, dimensions: DEFAULT_PROJECT_DIMENSIONS.project }
+const emptyProject = {
+  title: '',
+  type: 'project',
+  role: '',
+  date: '',
+  description: '',
+  link: '',
+  tags: '',
+  featured: false,
+  dimensions: DEFAULT_PROJECT_DIMENSIONS.project,
+  problem: '',
+  action: '',
+  impactWho: '',
+  growth: '',
+}
 
 export default function Portfolio() {
   const [view, setView] = useState('manage')
@@ -66,7 +81,12 @@ function ManageView() {
     setModalOpen(true)
   }
   function openEdit(p) {
-    setForm({ ...p, tags: (p.tags || []).join(', '), dimensions: p.dimensions?.length ? p.dimensions : DEFAULT_PROJECT_DIMENSIONS[p.type] || [] })
+    setForm({
+      ...emptyProject,
+      ...p,
+      tags: (p.tags || []).join(', '),
+      dimensions: p.dimensions?.length ? p.dimensions : DEFAULT_PROJECT_DIMENSIONS[p.type] || [],
+    })
     setEditingId(p.id)
     setModalOpen(true)
   }
@@ -179,6 +199,10 @@ function ManageView() {
           <Field label="Which parts of you does this grow?" hint="Tags it for your North Star map.">
             <DimensionTagPicker value={form.dimensions} onChange={(dimensions) => setForm((prev) => ({ ...prev, dimensions }))} />
           </Field>
+          <ImpactFraming
+            value={{ problem: form.problem, action: form.action, impactWho: form.impactWho, growth: form.growth }}
+            onChange={(fields) => setForm((prev) => ({ ...prev, ...fields }))}
+          />
           <label className="flex items-center gap-2 text-[13.5px] text-neutral-600 dark:text-neutral-300 cursor-pointer w-fit">
             <Checkbox checked={form.featured} onChange={() => setForm((prev) => ({ ...prev, featured: !form.featured }))} />
             Feature at the top of my portfolio

@@ -2,10 +2,13 @@ function todayKey(d = new Date()) {
   return d.toISOString().slice(0, 10)
 }
 
-// datesActive: array of 'YYYY-MM-DD' strings (deduped, unordered)
-export function computeStreak(datesActive) {
+// datesActive: array of 'YYYY-MM-DD' strings (deduped, unordered).
+// `ref` lets callers ask "what was the streak as of this date?" (used by
+// Growth Analytics to reconstruct a historical North Star snapshot) —
+// defaults to real today so every existing call site is unaffected.
+export function computeStreak(datesActive, ref = new Date()) {
   const set = new Set(datesActive)
-  const today = new Date()
+  const today = new Date(ref)
   const activeToday = set.has(todayKey(today))
 
   // Walk backwards from today (or yesterday, if today has no activity yet —

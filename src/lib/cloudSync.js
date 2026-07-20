@@ -70,7 +70,7 @@ export function hasMeaningfulData(data) {
     data.exams.length > 0 ||
     data.projects.length > 0 ||
     data.activities.length > 0 ||
-    data.deadlines.length > 0 ||
+    data.opportunities.length > 0 ||
     data.tasks.length > 0
   )
 }

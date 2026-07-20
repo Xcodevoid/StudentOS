@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap, FileText, Copy, Printer } from 'lucide-react'
+import {
+  Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap, FileText, Copy, Printer,
+  Trophy, FlaskConical, Award, Sun,
+} from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
@@ -11,6 +14,8 @@ import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dat
 import { DEFAULT_ACTIVITY_DIMENSIONS } from '../lib/northStar'
 import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
 import { PolishChecklist } from '../components/collegeprep/PolishChecklist'
+import { OpportunityChecklist } from '../components/collegeprep/OpportunityChecklist'
+import { ImpactFraming } from '../components/collegeprep/ImpactFraming'
 import {
   COMMON_APP_CATEGORIES,
   DEFAULT_COMMON_APP_TYPE,
@@ -30,15 +35,23 @@ const ACTIVITY_TYPES = {
   internship: { label: 'Internship', icon: Briefcase, tone: 'purple' },
 }
 
-const DEADLINE_TYPES = {
+const CATEGORY_TYPES = {
+  'college-application': { label: 'College Application', icon: GraduationCap, tone: 'accent' },
+  competition: { label: 'Competition', icon: Trophy, tone: 'purple' },
+  'research-program': { label: 'Research Program', icon: FlaskConical, tone: 'green' },
+  internship: { label: 'Internship', icon: Briefcase, tone: 'neutral' },
+  scholarship: { label: 'Scholarship', icon: Award, tone: 'amber' },
+  'summer-program': { label: 'Summer Program', icon: Sun, tone: 'amber' },
+}
+
+const APPLICATION_ROUNDS = {
+  '': { label: 'No round set', tone: 'neutral' },
   'early-action': { label: 'Early Action', tone: 'accent' },
   'early-decision': { label: 'Early Decision', tone: 'purple' },
   regular: { label: 'Regular Decision', tone: 'neutral' },
-  scholarship: { label: 'Scholarship', tone: 'amber' },
-  other: { label: 'Other', tone: 'neutral' },
 }
 
-const DEADLINE_STATUS = {
+const OPPORTUNITY_STATUS = {
   'not-started': { label: 'Not started', tone: 'neutral' },
   'in-progress': { label: 'In progress', tone: 'amber' },
   submitted: { label: 'Submitted', tone: 'green' },
@@ -54,8 +67,21 @@ const emptyActivity = {
   endDate: '',
   description: '',
   dimensions: DEFAULT_ACTIVITY_DIMENSIONS.activity,
+  problem: '',
+  action: '',
+  impactWho: '',
+  growth: '',
 }
-const emptyDeadline = { title: '', schoolName: '', date: '', type: 'regular', status: 'not-started', notes: '' }
+const emptyOpportunity = {
+  title: '',
+  schoolName: '',
+  date: '',
+  category: 'college-application',
+  applicationRound: '',
+  status: 'not-started',
+  notes: '',
+  checklist: [],
+}
 
 export default function CollegePrep() {
   const [tab, setTab] = useState('timeline')
@@ -64,7 +90,9 @@ export default function CollegePrep() {
     <div className="space-y-6">
       <div>
         <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">College Prep Timeline</h1>
-        <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1">Activities, volunteering, internships, and application deadlines.</p>
+        <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1">
+          Activities, volunteering, and internships — plus every opportunity worth chasing: competitions, research, scholarships, summer programs.
+        </p>
       </div>
 
       <div className="inline-flex p-1 rounded-full bg-black/[0.05] dark:bg-white/10">
@@ -97,19 +125,19 @@ function TimelineView() {
   const { data } = useStore()
 
   const events = useMemo(() => {
-    const fromDeadlines = data.deadlines
+    const fromOpportunities = data.opportunities
       .filter((d) => d.date)
-      .map((d) => ({ id: `dl-${d.id}`, date: d.date, kind: 'deadline', title: d.title, sub: d.schoolName, meta: DEADLINE_TYPES[d.type] }))
+      .map((d) => ({ id: `dl-${d.id}`, date: d.date, kind: 'deadline', title: d.title, sub: d.schoolName, meta: CATEGORY_TYPES[d.category] }))
     const fromActivities = data.activities
       .filter((a) => a.startDate)
       .map((a) => ({ id: `ac-${a.id}`, date: a.startDate, kind: 'activity', title: a.title, sub: a.org, meta: ACTIVITY_TYPES[a.category] }))
-    return sortByDateAsc([...fromDeadlines, ...fromActivities])
-  }, [data.deadlines, data.activities])
+    return sortByDateAsc([...fromOpportunities, ...fromActivities])
+  }, [data.opportunities, data.activities])
 
   if (events.length === 0) {
     return (
       <Card className="p-5">
-        <EmptyState icon={Compass} title="Your timeline is empty" description="Add activities and deadlines in the Manage tab to see them plotted here." />
+        <EmptyState icon={Compass} title="Your timeline is empty" description="Add activities and opportunities in the Manage tab to see them plotted here." />
       </Card>
     )
   }
@@ -152,68 +180,78 @@ function TimelineView() {
 function ManageView() {
   return (
     <div className="space-y-6">
-      <DeadlinesCard />
+      <OpportunitiesCard />
       <ActivitiesCard />
     </div>
   )
 }
 
-function DeadlinesCard() {
+function OpportunitiesCard() {
   const { data, addItem, updateItem, removeItem } = useStore()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [form, setForm] = useState(emptyDeadline)
-  const sorted = useMemo(() => sortByDateAsc(data.deadlines), [data.deadlines])
+  const [form, setForm] = useState(emptyOpportunity)
+  const sorted = useMemo(() => sortByDateAsc(data.opportunities), [data.opportunities])
 
   function openAdd() {
-    setForm(emptyDeadline)
+    setForm(emptyOpportunity)
     setEditingId(null)
     setModalOpen(true)
   }
   function openEdit(d) {
-    setForm(d)
+    setForm({ ...emptyOpportunity, ...d })
     setEditingId(d.id)
     setModalOpen(true)
   }
   function save(e) {
     e.preventDefault()
     if (!form.title.trim()) return
-    if (editingId) updateItem('deadlines', editingId, form)
-    else addItem('deadlines', form)
+    if (editingId) updateItem('opportunities', editingId, form)
+    else addItem('opportunities', form)
     setModalOpen(false)
   }
 
   return (
     <Card className="p-5">
       <CardHeader
-        title="Application Deadlines"
-        subtitle="Colleges, scholarships, and program applications."
-        action={<Button size="sm" icon={Plus} onClick={openAdd}>Add Deadline</Button>}
+        title="Opportunities"
+        subtitle="College applications, competitions, research, scholarships, and summer programs."
+        action={<Button size="sm" icon={Plus} onClick={openAdd}>Add Opportunity</Button>}
       />
       <div className="mt-4">
         {sorted.length === 0 ? (
-          <EmptyState icon={GraduationCap} title="No deadlines yet" description="Add a college or scholarship deadline to track it." />
+          <EmptyState icon={GraduationCap} title="No opportunities yet" description="Add a college application, competition, or program to track it." />
         ) : (
           <div className="divide-y divide-black/5 dark:divide-white/10">
-            {sorted.map((d) => (
-              <div key={d.id} className="flex items-center gap-3 py-3 group">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-[14px] font-medium text-neutral-900 dark:text-white truncate">{d.title}</p>
-                    <Badge tone={DEADLINE_TYPES[d.type]?.tone}>{DEADLINE_TYPES[d.type]?.label}</Badge>
-                    <Badge tone={DEADLINE_STATUS[d.status]?.tone}>{DEADLINE_STATUS[d.status]?.label}</Badge>
+            {sorted.map((d) => {
+              const C = CATEGORY_TYPES[d.category] || CATEGORY_TYPES['college-application']
+              const doneCount = (d.checklist || []).filter((c) => c.done).length
+              return (
+                <div key={d.id} className="flex items-center gap-3 py-3 group">
+                  <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <C.icon size={16} className="text-neutral-500" />
                   </div>
-                  <p className="text-[12.5px] text-neutral-400 mt-0.5">
-                    {[d.schoolName, d.date ? formatDate(d.date) : null].filter(Boolean).join(' · ')}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[14px] font-medium text-neutral-900 dark:text-white truncate">{d.title}</p>
+                      <Badge tone={C.tone}>{C.label}</Badge>
+                      {d.applicationRound && <Badge tone={APPLICATION_ROUNDS[d.applicationRound]?.tone}>{APPLICATION_ROUNDS[d.applicationRound]?.label}</Badge>}
+                      <Badge tone={OPPORTUNITY_STATUS[d.status]?.tone}>{OPPORTUNITY_STATUS[d.status]?.label}</Badge>
+                    </div>
+                    <p className="text-[12.5px] text-neutral-400 mt-0.5">
+                      {[d.schoolName, d.date ? formatDate(d.date) : null, (d.checklist || []).length > 0 ? `${doneCount}/${d.checklist.length} prep steps` : null]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                  </div>
+                  {d.date && !isOverdue(d.date) && <Badge tone="neutral">{countdownLabel(d.date)}</Badge>}
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <IconButton icon={Pencil} onClick={() => openEdit(d)} />
+                    <IconButton icon={Trash2} onClick={() => removeItem('opportunities', d.id)} />
+                  </div>
                 </div>
-                {d.date && !isOverdue(d.date) && <Badge tone="neutral">{countdownLabel(d.date)}</Badge>}
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                  <IconButton icon={Pencil} onClick={() => openEdit(d)} />
-                  <IconButton icon={Trash2} onClick={() => removeItem('deadlines', d.id)} />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -221,11 +259,12 @@ function DeadlinesCard() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId ? 'Edit Deadline' : 'Add Deadline'}
+        title={editingId ? 'Edit Opportunity' : 'Add Opportunity'}
+        wide
         footer={
           <>
             <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button onClick={save}>{editingId ? 'Save Changes' : 'Add Deadline'}</Button>
+            <Button onClick={save}>{editingId ? 'Save Changes' : 'Add Opportunity'}</Button>
           </>
         }
       >
@@ -233,30 +272,54 @@ function DeadlinesCard() {
           <Field label="Title">
             <Input autoFocus value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} placeholder="e.g. MIT — Early Action" />
           </Field>
-          <Field label="School / Organization">
-            <Input value={form.schoolName} onChange={(e) => setForm((prev) => ({ ...prev, schoolName: e.target.value }))} placeholder="e.g. MIT" />
-          </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Deadline date">
-              <Input type="date" value={form.date} onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))} />
-            </Field>
-            <Field label="Type">
-              <Select value={form.type} onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))}>
-                {Object.entries(DEADLINE_TYPES).map(([k, v]) => (
+            <Field label="Category">
+              <Select value={form.category} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}>
+                {Object.entries(CATEGORY_TYPES).map(([k, v]) => (
                   <option key={k} value={k}>{v.label}</option>
                 ))}
               </Select>
             </Field>
+            <Field label="School / Organization">
+              <Input value={form.schoolName} onChange={(e) => setForm((prev) => ({ ...prev, schoolName: e.target.value }))} placeholder="e.g. MIT" />
+            </Field>
           </div>
-          <Field label="Status">
-            <Select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
-              {Object.entries(DEADLINE_STATUS).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
-              ))}
-            </Select>
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Deadline date">
+              <Input type="date" value={form.date} onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))} />
+            </Field>
+            {form.category === 'college-application' ? (
+              <Field label="Application round">
+                <Select value={form.applicationRound} onChange={(e) => setForm((prev) => ({ ...prev, applicationRound: e.target.value }))}>
+                  {Object.entries(APPLICATION_ROUNDS).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </Select>
+              </Field>
+            ) : (
+              <Field label="Status">
+                <Select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
+                  {Object.entries(OPPORTUNITY_STATUS).map(([k, v]) => (
+                    <option key={k} value={k}>{v.label}</option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+          </div>
+          {form.category === 'college-application' && (
+            <Field label="Status">
+              <Select value={form.status} onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}>
+                {Object.entries(OPPORTUNITY_STATUS).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
+                ))}
+              </Select>
+            </Field>
+          )}
           <Field label="Notes (optional)">
             <Textarea value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} rows={2} />
+          </Field>
+          <Field label="Preparation checklist" hint="Essay drafted, recommender asked, transcript sent — whatever getting ready looks like here.">
+            <OpportunityChecklist value={form.checklist} onChange={(checklist) => setForm((prev) => ({ ...prev, checklist }))} />
           </Field>
         </form>
       </Modal>
@@ -277,7 +340,7 @@ function ActivitiesCard() {
     setModalOpen(true)
   }
   function openEdit(a) {
-    setForm({ ...a, dimensions: a.dimensions?.length ? a.dimensions : DEFAULT_ACTIVITY_DIMENSIONS[a.category] || [] })
+    setForm({ ...emptyActivity, ...a, dimensions: a.dimensions?.length ? a.dimensions : DEFAULT_ACTIVITY_DIMENSIONS[a.category] || [] })
     setEditingId(a.id)
     setModalOpen(true)
   }
@@ -381,6 +444,10 @@ function ActivitiesCard() {
           <Field label="Which parts of you does this grow?" hint="Tags it for your North Star map.">
             <DimensionTagPicker value={form.dimensions} onChange={(dimensions) => setForm((prev) => ({ ...prev, dimensions }))} />
           </Field>
+          <ImpactFraming
+            value={{ problem: form.problem, action: form.action, impactWho: form.impactWho, growth: form.growth }}
+            onChange={(fields) => setForm((prev) => ({ ...prev, ...fields }))}
+          />
         </form>
       </Modal>
     </Card>

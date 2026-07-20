@@ -14,6 +14,7 @@ import CollegePrep from './pages/CollegePrep'
 import CalendarPage from './pages/Calendar'
 import Momentum from './pages/Momentum'
 import NorthStar from './pages/NorthStar'
+import GrowthAnalytics from './pages/GrowthAnalytics'
 import SettingsPage from './pages/Settings'
 import PublicPortfolio from './pages/PublicPortfolio'
 
@@ -36,6 +37,7 @@ function App() {
                 >
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/north-star" element={<NorthStar />} />
+                  <Route path="/growth" element={<GrowthAnalytics />} />
                   <Route path="/momentum" element={<Momentum />} />
                   <Route path="/academics" element={<Academics />} />
                   <Route path="/exams" element={<Exams />} />
