@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer } from 'lucide-react'
+import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
@@ -12,6 +12,9 @@ import { CATEGORY_TYPES, APPLICATION_ROUNDS, OPPORTUNITY_STATUS } from '../lib/o
 import { ACTIVITY_TYPES } from '../lib/activityTypes'
 import { PolishChecklist } from '../components/collegeprep/PolishChecklist'
 import { OpportunityChecklist } from '../components/collegeprep/OpportunityChecklist'
+import RecommendersCard from '../components/collegepath/RecommendersCard'
+import BragSheetView from '../components/collegepath/BragSheetView'
+import TestPrepView from '../components/collegepath/TestPrepView'
 import {
   COMMON_APP_CATEGORIES,
   DEFAULT_COMMON_APP_TYPE,
@@ -41,18 +44,20 @@ export default function CollegePath() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="print:hidden">
         <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">College Path</h1>
         <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1">
           Every opportunity worth chasing — competitions, research, scholarships, summer programs, college applications.
         </p>
       </div>
 
-      <div className="inline-flex p-1 rounded-full bg-black/[0.05] dark:bg-white/10">
+      <div className="inline-flex p-1 rounded-full bg-black/[0.05] dark:bg-white/10 print:hidden">
         {[
           { id: 'timeline', label: 'Timeline', icon: Compass },
           { id: 'opportunities', label: 'Opportunities', icon: Flag },
           { id: 'export', label: 'Common App Export', icon: FileText },
+          { id: 'bragsheet', label: 'Brag Sheet', icon: FileHeart },
+          { id: 'testprep', label: 'Test Prep', icon: Gauge },
         ].map((t) => (
           <button
             key={t.id}
@@ -70,6 +75,13 @@ export default function CollegePath() {
       {tab === 'timeline' && <TimelineView />}
       {tab === 'opportunities' && <OpportunitiesCard />}
       {tab === 'export' && <CommonAppExportView />}
+      {tab === 'bragsheet' && (
+        <div className="space-y-6">
+          <RecommendersCard />
+          <BragSheetView />
+        </div>
+      )}
+      {tab === 'testprep' && <TestPrepView />}
     </div>
   )
 }

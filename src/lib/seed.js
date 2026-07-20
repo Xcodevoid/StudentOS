@@ -7,6 +7,8 @@ function d(offsetDays) {
 }
 
 export function seedDemoData() {
+  const habitWorkoutId = uid()
+  const habitReadId = uid()
   return {
     version: 1,
     profile: {
@@ -14,6 +16,7 @@ export function seedDemoData() {
       gradeLevel: '11th Grade',
       school: 'Lincoln High School',
       bio: 'Aspiring computer scientist interested in AI for healthcare. Founder of a robotics mentorship program.',
+      intendedMajor: 'Computer Science',
       gpaScale: 4.0,
       onboarded: true,
     },
@@ -239,5 +242,77 @@ export function seedDemoData() {
       { id: uid(), title: 'Email robotics mentor about regionals', dueDate: d(0), done: false },
       { id: uid(), title: 'Draft Common App essay outline', dueDate: d(1), done: false },
     ],
+    habits: [
+      { id: habitWorkoutId, title: 'Morning workout', archived: false },
+      { id: habitReadId, title: 'Read 20 minutes', archived: false },
+    ],
+    habitLogs: [
+      ...[0, -1, -2, -3, -4].map((offset) => ({ id: uid(), habitId: habitWorkoutId, date: d(offset) })),
+      ...[-1, -2, -4, -6].map((offset) => ({ id: uid(), habitId: habitReadId, date: d(offset) })),
+    ],
+    momentumSessions: [
+      { id: uid(), commitmentId: null, taskLabel: 'Calc BC problem set', plannedMinutes: 25, actualMinutes: 25, goalCompleted: true, focusRating: 4, date: d(0) },
+      { id: uid(), commitmentId: null, taskLabel: 'Read Chapter 4 — APUSH', plannedMinutes: 45, actualMinutes: 40, goalCompleted: true, focusRating: 5, date: d(-1) },
+      { id: uid(), commitmentId: null, taskLabel: 'CS lab debugging', plannedMinutes: 25, actualMinutes: 25, goalCompleted: false, focusRating: 3, date: d(-3) },
+    ],
+    distractions: [
+      { id: uid(), description: '', minutesLost: 0, time: '', date: d(0), stayedFocused: true, note: '' },
+      { id: uid(), description: '', minutesLost: 0, time: '', date: d(-1), stayedFocused: true, note: '' },
+      { id: uid(), description: '', minutesLost: 0, time: '', date: d(-2), stayedFocused: false, note: 'Phone notifications' },
+      { id: uid(), description: '', minutesLost: 0, time: '', date: d(-4), stayedFocused: true, note: '' },
+    ],
+    reflections: [
+      { id: uid(), date: d(-1), accomplished: 'Finished the Calc BC problem set and started the APUSH essay draft.', blocked: 'Spent too long context-switching between subjects.', improve: 'Block out one subject at a time tomorrow.' },
+      { id: uid(), date: d(-2), accomplished: 'Robotics practice went well — the new arm design finally works.', blocked: 'Nothing major today.', improve: 'Keep this pace up.' },
+    ],
+    streak: { datesActive: [0, -1, -2, -3, -4].map((offset) => d(offset)) },
+    recommenders: [
+      {
+        id: uid(),
+        name: 'Ms. Rodriguez',
+        subject: 'AP Computer Science A teacher',
+        status: 'confirmed',
+        deadline: d(30),
+        notes: 'Mentored PathwAI from a rough prototype to something 500+ students actually use — saw the debugging grind firsthand.',
+      },
+      {
+        id: uid(),
+        name: 'Coach Patel',
+        subject: 'Robotics Club advisor',
+        status: 'asked',
+        deadline: d(45),
+        notes: '',
+      },
+    ],
+    testEntries: [
+      {
+        id: uid(),
+        testType: 'sat',
+        date: d(-200),
+        registrationDeadline: '',
+        status: 'completed',
+        scores: { readingWriting: 750, math: 700 },
+        notes: 'Strong on reading, ran out of time on the last math section.',
+      },
+      {
+        id: uid(),
+        testType: 'sat',
+        date: d(-90),
+        registrationDeadline: '',
+        status: 'completed',
+        scores: { readingWriting: 700, math: 780 },
+        notes: 'Much better pacing on math this time, reading dipped a bit.',
+      },
+      {
+        id: uid(),
+        testType: 'sat',
+        date: d(40),
+        registrationDeadline: d(10),
+        status: 'planned',
+        scores: {},
+        notes: '',
+      },
+    ],
+    testPrep: { targets: { sat: 1550 } },
   }
 }

@@ -177,6 +177,9 @@ export default function SettingsPage() {
               <Input value={data.profile.school} onChange={(e) => setProfile({ school: e.target.value })} placeholder="Your school" />
             </Field>
           </div>
+          <Field label="Intended major" hint="Shown on your Brag Sheet, so recommenders know what to speak to.">
+            <Input value={data.profile.intendedMajor} onChange={(e) => setProfile({ intendedMajor: e.target.value })} placeholder="e.g. Computer Science" />
+          </Field>
           <Field label="Bio" hint="A short intro shown at the top of your portfolio.">
             <Textarea value={data.profile.bio} onChange={(e) => setProfile({ bio: e.target.value })} rows={3} placeholder="Tell colleges and collaborators who you are." />
           </Field>

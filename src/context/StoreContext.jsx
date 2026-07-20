@@ -70,6 +70,7 @@ export function StoreProvider({ children }) {
           badgesSeen: snap.badges.seen,
           remindersNotified: snap.notifications.remindersNotified,
           northStar: snap.northStar,
+          testTargets: snap.testPrep.targets,
         },
         user.id
       )
@@ -161,6 +162,14 @@ export function StoreProvider({ children }) {
     [scheduleProfileSync]
   )
 
+  const setTestTargets = useCallback(
+    (patch) => {
+      setData((prev) => ({ ...prev, testPrep: { targets: { ...prev.testPrep.targets, ...patch } } }))
+      scheduleProfileSync()
+    },
+    [scheduleProfileSync]
+  )
+
   const recordActivityToday = useCallback(() => {
     setData((prev) => ({ ...prev, streak: { ...prev.streak, datesActive: recordToday(prev.streak.datesActive) } }))
     scheduleProfileSync()
@@ -195,7 +204,7 @@ export function StoreProvider({ children }) {
         .then(() =>
           supabase
             .from('profiles')
-            .upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {}, northStar: empty.northStar }, user.id))
+            .upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {}, northStar: empty.northStar, testTargets: {} }, user.id))
         )
         .catch((err) => console.error(err))
     }
@@ -225,6 +234,7 @@ export function StoreProvider({ children }) {
           ...next.northStar,
           goals: { ...base.northStar.goals, ...next.northStar?.goals },
         },
+        testPrep: { targets: { ...base.testPrep.targets, ...next.testPrep?.targets } },
       }
       setData(merged)
       if (cloudActive) pushAllToCloud(user.id, merged).catch((err) => console.error(err))
@@ -252,6 +262,7 @@ export function StoreProvider({ children }) {
       toggleItem,
       setProfile,
       setNorthStar,
+      setTestTargets,
       resetAll,
       loadDemo,
       replaceAll,
@@ -273,6 +284,7 @@ export function StoreProvider({ children }) {
       toggleItem,
       setProfile,
       setNorthStar,
+      setTestTargets,
       resetAll,
       loadDemo,
       replaceAll,

@@ -1,4 +1,5 @@
 import { daysUntil, isOverdue, isToday } from './dates'
+import { TEST_TYPES } from './standardizedTests'
 
 // Builds a single sorted "what needs attention" list from assignments, exams,
 // and deadlines. Used by both the notification bell and the background
@@ -18,6 +19,10 @@ export function getReminderItems(data) {
     .filter((d) => d.status !== 'submitted' && d.date)
     .forEach((d) => items.push({ id: d.id, kind: 'deadline', title: d.title, date: d.date, path: '/college-path?tab=opportunities' }))
 
+  data.testEntries
+    .filter((t) => t.status === 'planned' && t.date)
+    .forEach((t) => items.push({ id: t.id, kind: 'test', title: TEST_TYPES[t.testType]?.label || 'Test', date: t.date, path: '/college-path?tab=testprep' }))
+
   return items.sort((a, b) => new Date(a.date) - new Date(b.date))
 }
 
@@ -31,6 +36,6 @@ export function bucketReminders(items) {
   return { overdue, today, upcoming }
 }
 
-export const KIND_LABEL = { assignment: 'Assignment', exam: 'Exam', deadline: 'Opportunity' }
+export const KIND_LABEL = { assignment: 'Assignment', exam: 'Exam', deadline: 'Opportunity', test: 'Standardized Test' }
 
 export const EXAM_MILESTONES = [30, 14, 7, 3, 1, 0]

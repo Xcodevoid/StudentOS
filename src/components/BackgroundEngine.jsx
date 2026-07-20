@@ -8,8 +8,8 @@ import { computeNorthStar } from '../lib/northStar'
 const CHECK_INTERVAL_MS = 60_000
 
 // Mounted once near the app root. Two jobs, both silent unless something is
-// actually due: (1) fire browser notifications for newly-due items and exam
-// countdown milestones, deduped via data.notifications.remindersNotified;
+// actually due: (1) fire browser notifications for newly-due items and
+// exam/test countdown milestones, deduped via data.notifications.remindersNotified;
 // (2) toast a North Star dimension crossing into a new tier (reuses the same
 // "seen" dedup store that badge unlocks used to).
 export default function BackgroundEngine() {
@@ -24,13 +24,13 @@ export default function BackgroundEngine() {
       const todayStr = new Date().toISOString().slice(0, 10)
       getReminderItems(data).forEach((item) => {
         const diff = daysUntil(item.date)
-        if (item.kind === 'exam') {
+        if (item.kind === 'exam' || item.kind === 'test') {
           if (!EXAM_MILESTONES.includes(diff)) return
-          const key = `exam-${item.id}-${diff}`
+          const key = `${item.kind}-${item.id}-${diff}`
           if (isReminded(key)) return
           markReminded(key)
           const body = diff === 0 ? `${item.title} is today. You've got this.` : `${diff} day${diff === 1 ? '' : 's'} until ${item.title}.`
-          new Notification('Exam countdown', { body })
+          new Notification(item.kind === 'exam' ? 'Exam countdown' : 'Test countdown', { body })
         } else {
           if (diff > 0) return
           const key = `${item.kind}-${item.id}-${todayStr}`

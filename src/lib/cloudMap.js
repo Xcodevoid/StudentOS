@@ -21,6 +21,8 @@ export const TABLES = {
   habitLogs: 'habit_logs',
   reflections: 'reflections',
   evidence: 'evidence',
+  recommenders: 'recommenders',
+  testEntries: 'test_entries',
 }
 
 // entity -> { appKey: dbColumn }
@@ -46,9 +48,10 @@ const FIELD_MAP = {
   studySessions: { examId: 'exam_id' },
   commitments: { estimatedMinutes: 'estimated_minutes' },
   momentumSessions: { commitmentId: 'commitment_id', taskLabel: 'task_label', plannedMinutes: 'planned_minutes', actualMinutes: 'actual_minutes', goalCompleted: 'goal_completed', focusRating: 'focus_rating' },
-  distractions: { minutesLost: 'minutes_lost' },
+  distractions: { minutesLost: 'minutes_lost', stayedFocused: 'stayed_focused' },
   habitLogs: { habitId: 'habit_id' },
   evidence: { linkedProjectId: 'linked_project_id', linkedActivityId: 'linked_activity_id', storagePath: 'storage_path' },
+  testEntries: { testType: 'test_type', registrationDeadline: 'registration_deadline' },
 }
 
 // Fields that are numeric / date / uuid-FK columns, where an empty string
@@ -72,6 +75,8 @@ const NULLABLE_FIELDS = {
   habitLogs: ['date'],
   reflections: ['date'],
   evidence: ['date', 'linkedProjectId', 'linkedActivityId', 'storagePath'],
+  recommenders: ['deadline'],
+  testEntries: ['date', 'registrationDeadline'],
 }
 
 // Nullable fields where null has a distinct tri-state meaning from '' (right
@@ -118,6 +123,7 @@ export function profileToDb(profile, extras, userId) {
     grade_level: profile.gradeLevel,
     school: profile.school,
     bio: profile.bio,
+    intended_major: profile.intendedMajor,
     gpa_scale: profile.gpaScale,
     onboarded: profile.onboarded,
     notifications_enabled: profile.notificationsEnabled,
@@ -127,6 +133,7 @@ export function profileToDb(profile, extras, userId) {
     badges_seen: extras.badgesSeen,
     reminders_notified: extras.remindersNotified,
     north_star: extras.northStar,
+    test_targets: extras.testTargets,
     updated_at: new Date().toISOString(),
   }
 }
@@ -138,6 +145,7 @@ export function profileFromDb(row) {
       gradeLevel: row.grade_level || '11th Grade',
       school: row.school || '',
       bio: row.bio || '',
+      intendedMajor: row.intended_major || '',
       gpaScale: row.gpa_scale ?? 4.0,
       onboarded: row.onboarded ?? false,
       notificationsEnabled: row.notifications_enabled ?? false,
@@ -154,5 +162,6 @@ export function profileFromDb(row) {
         ...row.north_star?.goals,
       },
     },
+    testPrep: { targets: row.test_targets || {} },
   }
 }

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, GraduationCap, Sparkles, Compass, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap, Star } from 'lucide-react'
+import { LayoutDashboard, GraduationCap, Sparkles, Compass, Settings, GalleryVerticalEnd, Cloud, CloudOff, Star } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
@@ -10,7 +10,6 @@ import MigrationPrompt from './MigrationPrompt'
 const NAV = [
   { to: '/', label: 'Home', icon: LayoutDashboard, end: true },
   { to: '/growth-journey', label: 'Growth Journey', mobileLabel: 'Growth', icon: Star },
-  { to: '/momentum', label: 'Momentum', mobileLabel: 'Boost', icon: Zap },
   { to: '/academics', label: 'Academics', icon: GraduationCap },
   { to: '/portfolio', label: 'Portfolio', icon: Sparkles },
   { to: '/college-path', label: 'College Path', mobileLabel: 'Path', icon: Compass },
@@ -33,7 +32,7 @@ export default function Layout() {
       <MigrationPrompt />
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 z-30 border-r border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
+      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 z-30 border-r border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl print:hidden">
         <div className="flex items-center justify-between gap-2 px-4 h-16 flex-shrink-0">
           <div className="flex items-center gap-2 pl-2 min-w-0">
             <div className="w-7 h-7 rounded-lg bg-accent-500 flex items-center justify-center flex-shrink-0">
@@ -100,7 +99,7 @@ export default function Layout() {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 bg-white/80 dark:bg-[#0b0b0f]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10">
+      <header className="md:hidden print:hidden fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-4 bg-white/80 dark:bg-[#0b0b0f]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-accent-500 flex items-center justify-center">
             <GalleryVerticalEnd size={13} className="text-white" strokeWidth={2.5} />
@@ -123,14 +122,14 @@ export default function Layout() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 md:ml-60 pt-14 md:pt-0 pb-20 md:pb-0 min-w-0">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <main className="flex-1 md:ml-60 print:ml-0 pt-14 md:pt-0 print:pt-0 pb-20 md:pb-0 print:pb-0 min-w-0">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 print:p-0 print:max-w-none">
           <Outlet />
         </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-white/90 dark:bg-[#0b0b0f]/90 backdrop-blur-xl shadow-[var(--shadow-nav)] pb-[env(safe-area-inset-bottom)]">
+      <nav className="md:hidden print:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-white/90 dark:bg-[#0b0b0f]/90 backdrop-blur-xl shadow-[var(--shadow-nav)] pb-[env(safe-area-inset-bottom)]">
         {NAV.map((item) => (
           <NavLink
             key={item.to}

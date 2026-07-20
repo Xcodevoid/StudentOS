@@ -28,6 +28,8 @@ create table if not exists profiles (
 alter table profiles add column if not exists north_star jsonb not null default '{}'::jsonb;
 alter table profiles add column if not exists public_slug text unique;
 alter table profiles add column if not exists portfolio_public boolean not null default false;
+alter table profiles add column if not exists intended_major text not null default '';
+alter table profiles add column if not exists test_targets jsonb not null default '{}'::jsonb;
 
 alter table profiles drop constraint if exists public_slug_format;
 alter table profiles add constraint public_slug_format check (public_slug is null or public_slug ~ '^[a-z0-9-]{3,32}$');
@@ -246,6 +248,11 @@ create table if not exists distractions (
   time text not null default '',
   created_at timestamptz not null default now()
 );
+-- Distractions became a simple daily focus check-in (stayed_focused +
+-- optional note) instead of a per-incident log. Old detailed entries are
+-- left in place — they just won't have stayed_focused set.
+alter table distractions add column if not exists stayed_focused boolean;
+alter table distractions add column if not exists note text not null default '';
 
 create table if not exists habits (
   id uuid primary key default gen_random_uuid(),
@@ -295,12 +302,47 @@ create table if not exists evidence (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Recommendation Brag Sheet ----------
+-- Lightweight tracker for who's writing a recommendation letter; `notes`
+-- holds specific moments/context worth reminding that recommender about,
+-- since the brag sheet document can't guess those. The document itself is
+-- assembled on the fly from existing data (see src/lib/bragSheet.js) —
+-- nothing about the sheet's content is stored, only the recommender list.
+create table if not exists recommenders (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null default '',
+  subject text not null default '',
+  status text not null default 'not-asked',
+  deadline date,
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+
+-- ---------- Standardized Test Prep ----------
+-- One row per sitting. `scores` is a jsonb map of section key -> number,
+-- shaped per test type (see src/lib/standardizedTests.js) — sections differ
+-- enough across SAT/ACT/TOEFL/IELTS/Duolingo that a flexible jsonb blob beats
+-- a wide, mostly-null column set. Composite/superscore math is computed on
+-- read, never stored, so it's never stale relative to the raw section scores.
+create table if not exists test_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  test_type text not null default '',
+  date date,
+  registration_deadline date,
+  status text not null default 'planned',
+  scores jsonb not null default '{}'::jsonb,
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -390,3 +432,5 @@ create index if not exists idx_reflections_date on reflections(date);
 create index if not exists idx_evidence_user on evidence(user_id);
 create index if not exists idx_evidence_project on evidence(linked_project_id);
 create index if not exists idx_evidence_activity on evidence(linked_activity_id);
+create index if not exists idx_recommenders_user on recommenders(user_id);
+create index if not exists idx_test_entries_user on test_entries(user_id);
