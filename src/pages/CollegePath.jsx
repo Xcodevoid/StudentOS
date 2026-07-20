@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge } from 'lucide-react'
+import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge, Landmark } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
@@ -16,6 +16,7 @@ import { OpportunityChecklist } from '../components/collegeprep/OpportunityCheck
 import RecommendersCard from '../components/collegepath/RecommendersCard'
 import BragSheetView from '../components/collegepath/BragSheetView'
 import TestPrepView from '../components/collegepath/TestPrepView'
+import UniversitiesView from '../components/collegepath/UniversitiesView'
 import {
   COMMON_APP_CATEGORIES,
   DEFAULT_COMMON_APP_TYPE,
@@ -43,6 +44,7 @@ const emptyOpportunity = {
 const TABS = [
   { id: 'timeline', label: 'Timeline', icon: Compass },
   { id: 'opportunities', label: 'Opportunities', icon: Flag },
+  { id: 'universities', label: 'Universities', icon: Landmark },
   { id: 'export', label: 'Common App Export', icon: FileText },
   { id: 'bragsheet', label: 'Brag Sheet', icon: FileHeart },
   { id: 'testprep', label: 'Test Prep', icon: Gauge },
@@ -79,6 +81,7 @@ export default function CollegePath() {
 
       {tab === 'timeline' && <TimelineView />}
       {tab === 'opportunities' && <OpportunitiesCard />}
+      {tab === 'universities' && <UniversitiesView />}
       {tab === 'export' && <CommonAppExportView />}
       {tab === 'bragsheet' && (
         <div className="space-y-6">
