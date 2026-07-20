@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame, Zap, TrendingUp, FolderOpen } from 'lucide-react'
+import { CheckCircle2, Plus, Sparkles, Target, GraduationCap, Rocket, Flame, TrendingUp, FolderOpen } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { Card, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Checkbox, Input } from '../components/ui/Form'
 import { Badge, ProgressBar, EmptyState, StatCard, SectionTitle } from '../components/ui/Misc'
-import { ProgressRing } from '../components/ui/ProgressRing'
 import { RadarChart } from '../components/northstar/RadarChart'
 import { computeGPA } from '../lib/gpa'
 import { countdownLabel, formatDate, isOverdue, isToday, isoWeekKey, currentWeekRangeLabel, sortByDateAsc, parseLocalDate } from '../lib/dates'
@@ -14,8 +13,13 @@ import { seedDemoData } from '../lib/seed'
 import { computeStreak } from '../lib/streak'
 import { EXAM_TYPES } from '../lib/examTypes'
 import { CATEGORY_TYPES } from '../lib/opportunities'
-import { computeMomentumScore, todayKey } from '../lib/momentum'
 import { computeNorthStar, computeGrowthSummary, tierTone } from '../lib/northStar'
+import DailyBadges from '../components/home/DailyBadges'
+import TodayMission from '../components/home/TodayMission'
+import HabitsWidget from '../components/home/HabitsWidget'
+import FocusWidget from '../components/home/FocusWidget'
+import DistractionCheckIn from '../components/home/DistractionCheckIn'
+import ReflectionWidget from '../components/home/ReflectionWidget'
 
 export default function Dashboard() {
   const { data, addItem, toggleItem, updateItem, removeItem, setProfile, replaceAll, recordActivityToday } = useStore()
@@ -26,10 +30,8 @@ export default function Dashboard() {
   const gpa = useMemo(() => computeGPA(data.classes), [data.classes])
   const streak = useMemo(() => computeStreak(data.streak.datesActive), [data.streak.datesActive])
 
-  const momentum = useMemo(() => computeMomentumScore(data), [data])
   const northStar = useMemo(() => computeNorthStar(data), [data])
   const growthSummary = useMemo(() => computeGrowthSummary(data), [data])
-  const todaysMission = useMemo(() => data.commitments.filter((c) => c.date === todayKey()), [data.commitments])
 
   const minutesStudiedThisWeek = useMemo(() => {
     const weekKey = isoWeekKey()
@@ -83,11 +85,6 @@ export default function Dashboard() {
     setQuickGoal('')
   }
 
-  function toggleCommitment(c) {
-    if (!c.done) recordActivityToday()
-    updateItem('commitments', c.id, { done: !c.done })
-  }
-
   if (isFirstRun) {
     return (
       <div className="max-w-lg mx-auto mt-6 sm:mt-16 text-center">
@@ -127,7 +124,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">
@@ -150,100 +147,157 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* North Star */}
-      <Link to="/growth-journey" className="block">
-        <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
-          <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={64} showLabels={false} />
-          <div className="min-w-0 flex-1">
-            <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Your North Star</p>
-            {data.northStar.identity ? (
-              <p className="text-[13px] text-neutral-600 dark:text-neutral-300 line-clamp-1 mt-0.5">"{data.northStar.identity}"</p>
-            ) : (
-              <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">Set a Future Identity to anchor this</p>
-            )}
-            <p className="text-[12px] text-neutral-400 mt-0.5">
-              {northStar.overallScore !== null ? `${northStar.overallTier} · ${northStar.overallScore}/100` : 'Tag a project or activity to start your growth map'}
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
-        </Card>
-      </Link>
+      <DailyBadges />
 
-      {/* Momentum */}
-      <Link to="/momentum" className="block">
-        <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
-          <ProgressRing
-            value={momentum.score ?? 0}
-            size={64}
-            strokeWidth={6}
-            tone={momentum.score === null ? 'accent' : momentum.score >= 65 ? 'green' : momentum.score >= 40 ? 'amber' : 'red'}
-          >
-            <span className="text-[16px] font-semibold text-neutral-900 dark:text-white">{momentum.score ?? <Zap size={18} className="text-accent-500" />}</span>
-          </ProgressRing>
-          <div className="min-w-0 flex-1">
-            <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Momentum</p>
-            <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">
-              {momentum.tier || "Set today's mission to get your first score"}
-            </p>
-            <p className="text-[12px] text-neutral-400 mt-0.5">
-              {todaysMission.length > 0
-                ? `${todaysMission.filter((c) => c.done).length}/${todaysMission.length} today's mission done`
-                : 'No mission set for today'}
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
-        </Card>
-      </Link>
-
-      {/* Growth Progress + Upcoming Opportunities */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Link to="/growth-journey?tab=progress" className="block h-full">
-          <Card hover className="p-5 h-full">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-accent-500/10 flex items-center justify-center flex-shrink-0">
-                <TrendingUp size={16} className="text-accent-500" />
-              </div>
-              <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Growth Progress</p>
-            </div>
-            <div className="mt-3">
-              {growthSummary.mostDeveloped ? (
-                <p className="text-[13.5px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                  <span className="font-medium text-green-600 dark:text-green-400">{growthSummary.mostDeveloped.label}</span> is up +
-                  {growthSummary.mostDeveloped.delta} this month.
+      <div>
+        <SectionTitle>Growth</SectionTitle>
+        <div className="space-y-4">
+          <Link to="/growth-journey" className="block">
+            <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
+              <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={64} showLabels={false} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Your North Star</p>
+                {data.northStar.identity ? (
+                  <p className="text-[13px] text-neutral-600 dark:text-neutral-300 line-clamp-1 mt-0.5">"{data.northStar.identity}"</p>
+                ) : (
+                  <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">Set a Future Identity to anchor this</p>
+                )}
+                <p className="text-[12px] text-neutral-400 mt-0.5">
+                  {northStar.overallScore !== null ? `${northStar.overallTier} · ${northStar.overallScore}/100` : 'Tag a project or activity to start your growth map'}
                 </p>
-              ) : (
-                <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400">Keep building — nothing to compare yet this month.</p>
-              )}
-            </div>
-          </Card>
-        </Link>
+              </div>
+              <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
+            </Card>
+          </Link>
 
-        <Link to="/college-path" className="block h-full">
-          <Card hover className="p-5 h-full">
-            <CardHeader title="Upcoming Opportunities" subtitle="Competitions, research, scholarships & more" />
-            <div className="mt-3 space-y-2">
-              {upcomingOpportunities.length === 0 ? (
-                <p className="text-[13px] text-neutral-400">Nothing coming up.</p>
-              ) : (
-                upcomingOpportunities.map((o) => {
-                  const C = CATEGORY_TYPES[o.category] || CATEGORY_TYPES['college-application']
-                  return (
-                    <div key={o.id} className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex items-center gap-2">
-                        <C.icon size={13} className="text-neutral-400 flex-shrink-0" />
-                        <p className="text-[13px] text-neutral-700 dark:text-neutral-200 truncate">{o.title}</p>
-                      </div>
-                      <Badge tone="neutral">{countdownLabel(o.date)}</Badge>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </Card>
-        </Link>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link to="/growth-journey?tab=progress" className="block h-full">
+              <Card hover className="p-5 h-full">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-accent-500/10 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp size={16} className="text-accent-500" />
+                  </div>
+                  <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Growth Progress</p>
+                </div>
+                <div className="mt-3">
+                  {growthSummary.mostDeveloped ? (
+                    <p className="text-[13.5px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                      <span className="font-medium text-green-600 dark:text-green-400">{growthSummary.mostDeveloped.label}</span> is up +
+                      {growthSummary.mostDeveloped.delta} this month.
+                    </p>
+                  ) : (
+                    <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400">Keep building — nothing to compare yet this month.</p>
+                  )}
+                </div>
+              </Card>
+            </Link>
+
+            <Link to="/college-path" className="block h-full">
+              <Card hover className="p-5 h-full">
+                <CardHeader title="Upcoming Opportunities" subtitle="Competitions, research, scholarships & more" />
+                <div className="mt-3 space-y-2">
+                  {upcomingOpportunities.length === 0 ? (
+                    <p className="text-[13px] text-neutral-400">Nothing coming up.</p>
+                  ) : (
+                    upcomingOpportunities.map((o) => {
+                      const C = CATEGORY_TYPES[o.category] || CATEGORY_TYPES['college-application']
+                      return (
+                        <div key={o.id} className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex items-center gap-2">
+                            <C.icon size={13} className="text-neutral-400 flex-shrink-0" />
+                            <p className="text-[13px] text-neutral-700 dark:text-neutral-200 truncate">{o.title}</p>
+                          </div>
+                          <Badge tone="neutral">{countdownLabel(o.date)}</Badge>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </Card>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* Progress overview */}
+      <div>
+        <SectionTitle>Today</SectionTitle>
+        <div className="space-y-4">
+          <TodayMission />
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card className="p-5">
+              <CardHeader title="Due Today" subtitle="Assignments and quick tasks with a deadline" />
+              <form onSubmit={handleQuickTask} className="flex gap-2 mt-4">
+                <Input value={quickTask} onChange={(e) => setQuickTask(e.target.value)} placeholder="Quick add a task…" />
+                <Button type="submit" size="md" icon={Plus} aria-label="Add task" />
+              </form>
+              <div className="mt-4 space-y-1">
+                {todayTasks.length === 0 ? (
+                  <EmptyState icon={CheckCircle2} title="Nothing due today" description="Enjoy the clear runway." />
+                ) : (
+                  todayTasks.map((t) => (
+                    <div key={`${t.entity}-${t.id}`} className="flex items-center gap-3 py-2.5 px-1 group">
+                      <Checkbox
+                        checked={t.done}
+                        onChange={() => {
+                          if (!t.done) recordActivityToday()
+                          if (t.entity === 'assignments') updateItem('assignments', t.id, { status: t.done ? 'todo' : 'done' })
+                          else toggleItem('tasks', t.id)
+                        }}
+                      />
+                      <span className="flex-1 text-[14px] text-neutral-800 dark:text-neutral-100">{t.title}</span>
+                      {isOverdue(t.dueDate) && <Badge tone="red">Overdue</Badge>}
+                      {t.entity === 'tasks' && (
+                        <button
+                          onClick={() => removeItem('tasks', t.id)}
+                          className="opacity-0 group-hover:opacity-100 text-[12px] text-neutral-400 hover:text-red-500 transition-opacity"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <CardHeader title="Upcoming Exams" subtitle="AP, IB & A-Level countdown" />
+              <div className="mt-4 space-y-3">
+                {upcomingExams.length === 0 ? (
+                  <EmptyState icon={GraduationCap} title="No exams scheduled" description="Add an exam in the Exam Planner." />
+                ) : (
+                  upcomingExams.map((e) => (
+                    <div key={e.id} className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[13.5px] font-medium text-neutral-800 dark:text-neutral-100 truncate">{e.name}</p>
+                          <Badge tone={EXAM_TYPES[e.examType || 'other'].tone}>{EXAM_TYPES[e.examType || 'other'].label}</Badge>
+                        </div>
+                        <p className="text-[12px] text-neutral-400">{formatDate(e.date)}</p>
+                      </div>
+                      <Badge tone={isToday(e.date) ? 'red' : 'accent'}>{countdownLabel(e.date)}</Badge>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <SectionTitle>Daily Practice</SectionTitle>
+        <div className="space-y-4">
+          <HabitsWidget />
+          <FocusWidget />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <DistractionCheckIn />
+            <ReflectionWidget />
+          </div>
+        </div>
+      </div>
+
       <div>
         <SectionTitle>Progress Overview</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -256,151 +310,79 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Today's missions */}
-        <Card className="lg:col-span-2 p-5">
-          <CardHeader title="Today's Missions" subtitle="What actually matters today — school and beyond" />
-          <div className="mt-4 space-y-1">
-            {todaysMission.map((c) => (
-              <div key={`mission-${c.id}`} className="flex items-center gap-3 py-2.5 px-1">
-                <Checkbox checked={c.done} onChange={() => toggleCommitment(c)} />
-                <span className={`flex-1 text-[14px] ${c.done ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
-                  {c.title}
-                </span>
-                <Badge tone="accent">Mission</Badge>
-              </div>
-            ))}
-          </div>
-          <form onSubmit={handleQuickTask} className="flex gap-2 mt-2">
-            <Input value={quickTask} onChange={(e) => setQuickTask(e.target.value)} placeholder="Quick add a task…" />
-            <Button type="submit" size="md" icon={Plus} aria-label="Add task" />
-          </form>
-          <div className="mt-4 space-y-1">
-            {todayTasks.length === 0 && todaysMission.length === 0 ? (
-              <EmptyState icon={CheckCircle2} title="Nothing due today" description="Enjoy the clear runway." />
-            ) : (
-              todayTasks.map((t) => (
-                <div key={`${t.entity}-${t.id}`} className="flex items-center gap-3 py-2.5 px-1 group">
-                  <Checkbox
-                    checked={t.done}
-                    onChange={() => {
-                      if (!t.done) recordActivityToday()
-                      if (t.entity === 'assignments') updateItem('assignments', t.id, { status: t.done ? 'todo' : 'done' })
-                      else toggleItem('tasks', t.id)
-                    }}
-                  />
-                  <span className="flex-1 text-[14px] text-neutral-800 dark:text-neutral-100">{t.title}</span>
-                  {isOverdue(t.dueDate) && <Badge tone="red">Overdue</Badge>}
-                  {t.entity === 'tasks' && (
-                    <button
-                      onClick={() => removeItem('tasks', t.id)}
-                      className="opacity-0 group-hover:opacity-100 text-[12px] text-neutral-400 hover:text-red-500 transition-opacity"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-
-        {/* Upcoming exams */}
-        <Card className="p-5">
-          <CardHeader title="Upcoming Exams" subtitle="AP, IB & A-Level countdown" />
-          <div className="mt-4 space-y-3">
-            {upcomingExams.length === 0 ? (
-              <EmptyState icon={GraduationCap} title="No exams scheduled" description="Add an exam in the Exam Planner." />
-            ) : (
-              upcomingExams.map((e) => (
-                <div key={e.id} className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-[13.5px] font-medium text-neutral-800 dark:text-neutral-100 truncate">{e.name}</p>
-                      <Badge tone={EXAM_TYPES[e.examType || 'other'].tone}>{EXAM_TYPES[e.examType || 'other'].label}</Badge>
-                    </div>
-                    <p className="text-[12px] text-neutral-400">{formatDate(e.date)}</p>
-                  </div>
-                  <Badge tone={isToday(e.date) ? 'red' : 'accent'}>{countdownLabel(e.date)}</Badge>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Recent achievements */}
-        <Card className="p-5">
-          <CardHeader
-            title="Recent Achievements"
-            subtitle="Evidence you've collected"
-            action={
-              <Link to="/portfolio?tab=evidence" className="text-[12.5px] text-accent-600 dark:text-accent-400 hover:underline">
-                View all
-              </Link>
-            }
-          />
-          <div className="mt-4">
-            {recentEvidence.length === 0 ? (
-              <EmptyState icon={FolderOpen} title="Nothing saved yet" description="Log proof of your growth in the Evidence Vault." />
-            ) : (
-              <div className="space-y-2.5">
-                {recentEvidence.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-2">
-                    <p className="text-[13.5px] text-neutral-800 dark:text-neutral-100 truncate">{item.title}</p>
-                    <span className="text-[12px] text-neutral-400 flex-shrink-0">{item.date ? formatDate(item.date) : ''}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* Weekly goals */}
-        <Card className="p-5">
-          <CardHeader title="Weekly Goals" subtitle={currentWeekRangeLabel()} action={<Target size={18} className="text-neutral-300" />} />
-          <form onSubmit={handleQuickGoal} className="flex gap-2 mt-4">
-            <Input value={quickGoal} onChange={(e) => setQuickGoal(e.target.value)} placeholder="What do you want to accomplish this week?" />
-            <Button type="submit" size="md" icon={Plus} aria-label="Add goal" />
-          </form>
-          <div className="mt-4">
-            {weekGoals.length === 0 ? (
-              <EmptyState icon={Target} title="No goals set for this week" description="Set 2–3 goals to stay focused." />
-            ) : (
-              <>
-                <div className="flex items-center gap-2 mb-3">
-                  <ProgressBar value={weekGoals.filter((g) => g.done).length} max={weekGoals.length} tone="green" className="flex-1" />
-                  <span className="text-[12px] text-neutral-400 flex-shrink-0">
-                    {weekGoals.filter((g) => g.done).length}/{weekGoals.length}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {weekGoals.map((g) => (
-                    <div key={g.id} className="flex items-center gap-3 py-2 px-1 group">
-                      <Checkbox
-                        checked={g.done}
-                        onChange={() => {
-                          if (!g.done) recordActivityToday()
-                          toggleItem('goals', g.id)
-                        }}
-                      />
-                      <span className={`flex-1 text-[14px] ${g.done ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
-                        {g.text}
-                      </span>
-                      <button
-                        onClick={() => removeItem('goals', g.id)}
-                        className="opacity-0 group-hover:opacity-100 text-[12px] text-neutral-400 hover:text-red-500 transition-opacity"
-                      >
-                        Remove
-                      </button>
+      <div>
+        <SectionTitle>This Week</SectionTitle>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Card className="p-5">
+            <CardHeader
+              title="Recent Achievements"
+              subtitle="Evidence you've collected"
+              action={
+                <Link to="/portfolio?tab=evidence" className="text-[12.5px] text-accent-600 dark:text-accent-400 hover:underline">
+                  View all
+                </Link>
+              }
+            />
+            <div className="mt-4">
+              {recentEvidence.length === 0 ? (
+                <EmptyState icon={FolderOpen} title="Nothing saved yet" description="Log proof of your growth in the Evidence Vault." />
+              ) : (
+                <div className="space-y-2.5">
+                  {recentEvidence.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between gap-2">
+                      <p className="text-[13.5px] text-neutral-800 dark:text-neutral-100 truncate">{item.title}</p>
+                      <span className="text-[12px] text-neutral-400 flex-shrink-0">{item.date ? formatDate(item.date) : ''}</span>
                     </div>
                   ))}
                 </div>
-              </>
-            )}
-          </div>
-        </Card>
+              )}
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <CardHeader title="Weekly Goals" subtitle={currentWeekRangeLabel()} action={<Target size={18} className="text-neutral-300" />} />
+            <form onSubmit={handleQuickGoal} className="flex gap-2 mt-4">
+              <Input value={quickGoal} onChange={(e) => setQuickGoal(e.target.value)} placeholder="What do you want to accomplish this week?" />
+              <Button type="submit" size="md" icon={Plus} aria-label="Add goal" />
+            </form>
+            <div className="mt-4">
+              {weekGoals.length === 0 ? (
+                <EmptyState icon={Target} title="No goals set for this week" description="Set 2–3 goals to stay focused." />
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <ProgressBar value={weekGoals.filter((g) => g.done).length} max={weekGoals.length} tone="green" className="flex-1" />
+                    <span className="text-[12px] text-neutral-400 flex-shrink-0">
+                      {weekGoals.filter((g) => g.done).length}/{weekGoals.length}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {weekGoals.map((g) => (
+                      <div key={g.id} className="flex items-center gap-3 py-2 px-1 group">
+                        <Checkbox
+                          checked={g.done}
+                          onChange={() => {
+                            if (!g.done) recordActivityToday()
+                            toggleItem('goals', g.id)
+                          }}
+                        />
+                        <span className={`flex-1 text-[14px] ${g.done ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
+                          {g.text}
+                        </span>
+                        <button
+                          onClick={() => removeItem('goals', g.id)}
+                          className="opacity-0 group-hover:opacity-100 text-[12px] text-neutral-400 hover:text-red-500 transition-opacity"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   )

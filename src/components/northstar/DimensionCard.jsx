@@ -12,7 +12,7 @@ const EVIDENCE_LINKS = {
   impact: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
   skills: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
   curiosity: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
-  character: [{ to: '/momentum', label: 'Open Momentum' }],
+  character: [{ to: '/', label: 'Open Home' }],
 }
 
 export function DimensionCard({ dimension, goal, onGoalChange }) {

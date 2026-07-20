@@ -17,7 +17,7 @@ function fmtClock(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-export default function FocusSection() {
+export default function FocusWidget() {
   const { data, addItem, updateItem, recordActivityToday } = useStore()
   const [status, setStatus] = useState('idle') // idle | running | paused | reflecting
   const [remaining, setRemaining] = useState(0)
@@ -92,78 +92,77 @@ export default function FocusSection() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="p-5">
-        <CardHeader title="Start a Focus Session" subtitle="Full-screen, distraction-free. One task, one block of time." />
-        <div className="mt-4 space-y-4">
-          <Field label="Link to today's mission" hint="Optional — pick one of today's commitments to focus on.">
-            <Select
-              value={commitmentId}
-              onChange={(e) => {
-                const id = e.target.value
-                setCommitmentId(id)
-                const c = todaysOpenCommitments.find((x) => x.id === id)
-                if (c) setTaskLabel(c.title)
-              }}
-            >
-              <option value="">Something else</option>
-              {todaysOpenCommitments.map((c) => (
-                <option key={c.id} value={c.id}>{c.title}</option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="What are you focusing on?">
-            <Input value={taskLabel} onChange={(e) => setTaskLabel(e.target.value)} placeholder="e.g. Read Chapter 4" />
-          </Field>
-          <Field label="Duration">
-            <div className="flex gap-1.5">
-              {DURATIONS.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setMinutes(m)}
-                  className={`px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors ${
-                    minutes === m ? 'bg-accent-500 text-white' : 'bg-black/[0.05] text-neutral-600 dark:bg-white/10 dark:text-neutral-300'
-                  }`}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-          </Field>
-          <Button icon={Timer} onClick={start} className="w-full sm:w-auto">
-            Enter Focus Mode
-          </Button>
-        </div>
-      </Card>
+    <Card id="study" className="p-5">
+      <CardHeader title="Focus Sessions" subtitle="Full-screen, distraction-free. One task, one block of time." />
+      <div className="mt-4 space-y-4">
+        <Field label="Link to today's mission" hint="Optional — pick one of today's commitments to focus on.">
+          <Select
+            value={commitmentId}
+            onChange={(e) => {
+              const id = e.target.value
+              setCommitmentId(id)
+              const c = todaysOpenCommitments.find((x) => x.id === id)
+              if (c) setTaskLabel(c.title)
+            }}
+          >
+            <option value="">Something else</option>
+            {todaysOpenCommitments.map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="What are you focusing on?">
+          <Input value={taskLabel} onChange={(e) => setTaskLabel(e.target.value)} placeholder="e.g. Read Chapter 4" />
+        </Field>
+        <Field label="Duration">
+          <div className="flex gap-1.5">
+            {DURATIONS.map((m) => (
+              <button
+                key={m}
+                onClick={() => setMinutes(m)}
+                className={`px-3 py-2 rounded-xl text-[13.5px] font-medium transition-colors ${
+                  minutes === m ? 'bg-accent-500 text-white' : 'bg-black/[0.05] text-neutral-600 dark:bg-white/10 dark:text-neutral-300'
+                }`}
+              >
+                {m}m
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Button icon={Timer} onClick={start} className="w-full sm:w-auto">
+          Enter Focus Mode
+        </Button>
+      </div>
 
-      <Card className="p-5">
-        <CardHeader title="Recent Sessions" subtitle="Last 14 days" />
-        <div className="mt-4">
-          {recentSessions.length === 0 ? (
-            <EmptyState icon={Timer} title="No focus sessions yet" description="Your completed sessions will show up here." />
-          ) : (
-            <div className="divide-y divide-black/5 dark:divide-white/10">
-              {recentSessions.map((s) => (
-                <div key={s.id} className="flex items-center gap-3 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[13.5px] font-medium text-neutral-800 dark:text-neutral-100 truncate">{s.taskLabel}</p>
-                    <p className="text-[12px] text-neutral-400">{s.actualMinutes} min</p>
-                  </div>
-                  {s.goalCompleted === true && <Badge tone="green">Goal met</Badge>}
-                  {s.goalCompleted === false && <Badge tone="neutral">Didn't finish</Badge>}
-                  {s.focusRating && (
-                    <span className="flex items-center gap-0.5 text-amber-400">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} size={12} fill={i < s.focusRating ? 'currentColor' : 'none'} strokeWidth={1.5} />
-                      ))}
-                    </span>
-                  )}
+      {recentSessions.length > 0 && (
+        <div className="mt-6 pt-5 border-t border-black/5 dark:border-white/10">
+          <p className="text-[12px] font-medium text-neutral-500 dark:text-neutral-400 mb-3">Recent Sessions — Last 14 days</p>
+          <div className="divide-y divide-black/5 dark:divide-white/10">
+            {recentSessions.map((s) => (
+              <div key={s.id} className="flex items-center gap-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-medium text-neutral-800 dark:text-neutral-100 truncate">{s.taskLabel}</p>
+                  <p className="text-[12px] text-neutral-400">{s.actualMinutes} min</p>
                 </div>
-              ))}
-            </div>
-          )}
+                {s.goalCompleted === true && <Badge tone="green">Goal met</Badge>}
+                {s.goalCompleted === false && <Badge tone="neutral">Didn't finish</Badge>}
+                {s.focusRating && (
+                  <span className="flex items-center gap-0.5 text-amber-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={12} fill={i < s.focusRating ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                    ))}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </Card>
+      )}
+      {recentSessions.length === 0 && (
+        <div className="mt-2">
+          <EmptyState icon={Timer} title="No focus sessions yet" description="Your completed sessions will show up here." />
+        </div>
+      )}
 
       {status !== 'idle' && (
         <FocusOverlay
@@ -178,7 +177,7 @@ export default function FocusSection() {
           onSaveReflection={saveReflection}
         />
       )}
-    </div>
+    </Card>
   )
 }
 

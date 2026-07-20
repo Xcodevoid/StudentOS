@@ -10,7 +10,6 @@ import Dashboard from './pages/Dashboard'
 import Academics from './pages/Academics'
 import Portfolio from './pages/Portfolio'
 import CollegePath from './pages/CollegePath'
-import Momentum from './pages/Momentum'
 import GrowthJourney from './pages/GrowthJourney'
 import SettingsPage from './pages/Settings'
 import PublicPortfolio from './pages/PublicPortfolio'
@@ -34,7 +33,6 @@ function App() {
                 >
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/growth-journey" element={<GrowthJourney />} />
-                  <Route path="/momentum" element={<Momentum />} />
                   <Route path="/academics" element={<Academics />} />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/college-path" element={<CollegePath />} />
@@ -49,6 +47,7 @@ function App() {
                   <Route path="/exams" element={<Navigate to="/academics?tab=exams" replace />} />
                   <Route path="/calendar" element={<Navigate to="/academics?tab=calendar" replace />} />
                   <Route path="/college-prep" element={<Navigate to="/college-path" replace />} />
+                  <Route path="/momentum" element={<Navigate to="/" replace />} />
                 </Route>
               </Routes>
             </HashRouter>

@@ -141,7 +141,7 @@ export function computeNorthStar(data, asOf = new Date()) {
     )
   })
 
-  // Character draws on real Momentum signals — discipline and resilience
+  // Character draws on real daily-practice signals — discipline and resilience
   // shown through daily follow-through, not a separate self-rating.
   const activeHabits = (data.habits || []).filter((h) => !h.archived)
   let bestStreak = 0
@@ -160,7 +160,7 @@ export function computeNorthStar(data, asOf = new Date()) {
       title: `${bestStreak}-day streak on "${bestHabitTitle}"`,
       date: todayKey(asOf),
       weight: Math.min(30, Math.round(bestStreak * 1.5)),
-      source: 'Momentum',
+      source: 'Habits',
     })
   }
 
@@ -171,7 +171,7 @@ export function computeNorthStar(data, asOf = new Date()) {
       title: `${recentReflections.length} nightly reflection${recentReflections.length === 1 ? '' : 's'} this month`,
       date: [...recentReflections].sort((a, b) => b.date.localeCompare(a.date))[0]?.date || todayKey(asOf),
       weight: Math.min(20, recentReflections.length * 5),
-      source: 'Momentum',
+      source: 'Reflection',
     })
   }
 
@@ -183,7 +183,7 @@ export function computeNorthStar(data, asOf = new Date()) {
       title: `${Math.round(rate * 100)}% of daily missions completed this month`,
       date: todayKey(asOf),
       weight: Math.min(20, Math.round(rate * 20)),
-      source: 'Momentum',
+      source: 'Daily Mission',
     })
   }
 
