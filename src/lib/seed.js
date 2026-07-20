@@ -319,6 +319,6 @@ export function seedDemoData() {
         notes: '',
       },
     ],
-    testPrep: { targets: { sat: 1550 } },
+    testPrep: { targets: { sat: { readingWriting: 770, math: 780 } } },
   }
 }

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Plus, Pencil, Trash2, Gauge } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Plus, Pencil, Trash2, Gauge, Target } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { Card, CardHeader } from '../ui/Card'
 import { Button, IconButton } from '../ui/Button'
@@ -7,9 +7,13 @@ import { Field, Input, Select, Textarea } from '../ui/Form'
 import { Modal } from '../ui/Modal'
 import { Badge, EmptyState } from '../ui/Misc'
 import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../../lib/dates'
-import { TEST_TYPES, TEST_TYPE_OPTIONS, computeComposite, bestSingleAttempt, superscore, scoreGap } from '../../lib/standardizedTests'
+import {
+  TEST_TYPES, TEST_TYPE_OPTIONS, computeComposite, bestSingleAttempt, superscore, scoreGap,
+  bestSectionScores, focusSection,
+} from '../../lib/standardizedTests'
 
 const STATUS_TONE = { planned: 'neutral', completed: 'green' }
+const NO_TARGETS = {}
 
 function emptyEntry(testType = TEST_TYPE_OPTIONS[0].value) {
   return { testType, date: '', registrationDeadline: '', status: 'planned', scores: {}, notes: '' }
@@ -159,12 +163,16 @@ function TestTypeCard({ testType, entries, onEdit, onDelete }) {
   const type = TEST_TYPES[testType]
   const best = bestSingleAttempt(entries, testType)
   const supered = superscore(entries, testType)
-  const target = data.testPrep.targets[testType] ?? ''
-  const [targetInput, setTargetInput] = useState(target)
-  const gap = scoreGap(target, supered ?? best)
+  const bestSections = useMemo(() => bestSectionScores(entries, testType), [entries, testType])
+  const sectionTargets = data.testPrep.targets[testType] || NO_TARGETS
+  const overall = useMemo(() => computeComposite(testType, sectionTargets), [testType, sectionTargets])
+  const overallGap = scoreGap(overall, supered ?? best)
+  const focus = useMemo(() => focusSection(testType, sectionTargets, bestSections), [testType, sectionTargets, bestSections])
+  const relevantSections = type.sections.filter((s) => !s.excludeFromComposite)
+  const infoSections = type.sections.filter((s) => s.excludeFromComposite)
 
-  function saveTarget() {
-    setTestTargets({ [testType]: targetInput === '' ? '' : Number(targetInput) })
+  function saveSectionTarget(key, value) {
+    setTestTargets({ [testType]: { ...sectionTargets, [key]: value === '' ? '' : Number(value) } })
   }
 
   return (
@@ -177,21 +185,47 @@ function TestTypeCard({ testType, entries, onEdit, onDelete }) {
         <div className="flex items-center gap-5 flex-wrap">
           {best !== null && <Stat label="Best attempt" value={best} max={type.maxScore} />}
           {supered !== null && <Stat label="Superscore" value={supered} max={type.maxScore} tone="accent" />}
-          <div className="flex flex-col items-start gap-1">
-            <span className="text-[11px] text-neutral-400">Target</span>
-            <div className="flex items-center gap-1.5">
-              <Input
-                className="w-16 !py-1 !px-2 text-[13px]"
-                value={targetInput}
-                onChange={(e) => setTargetInput(e.target.value)}
-                onBlur={saveTarget}
-                placeholder="—"
-              />
-              {gap !== null && <Badge tone={gap <= 0 ? 'green' : 'amber'}>{gap <= 0 ? 'Met' : `+${gap} to go`}</Badge>}
+          {overall !== null && (
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[11px] text-neutral-400">Target {overall}</span>
+              {overallGap !== null && <Badge tone={overallGap <= 0 ? 'green' : 'amber'}>{overallGap <= 0 ? 'Met' : `+${overallGap} to go`}</Badge>}
             </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {focus && (
+        <div className="mt-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center gap-2.5">
+          <Target size={15} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <p className="text-[13px] text-amber-800 dark:text-amber-300">
+            <span className="font-medium">Focus here next: {focus.label}</span> — {focus.best}/{focus.target}, {focus.gap} point{focus.gap === 1 ? '' : 's'} to go
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 grid sm:grid-cols-2 gap-3">
+        {relevantSections.map((s) => (
+          <SectionTargetRow
+            key={s.key}
+            label={s.label}
+            max={s.max}
+            best={bestSections[s.key]}
+            target={sectionTargets[s.key]}
+            isFocus={focus?.key === s.key}
+            onCommit={(v) => saveSectionTarget(s.key, v)}
+          />
+        ))}
+      </div>
+
+      {infoSections.some((s) => bestSections[s.key] !== undefined) && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {infoSections.map(
+            (s) => bestSections[s.key] !== undefined && (
+              <Badge key={s.key} tone="neutral">{s.label}: {bestSections[s.key]}</Badge>
+            )
+          )}
+        </div>
+      )}
 
       <div className="mt-4 divide-y divide-black/5 dark:divide-white/10">
         {entries.map((e) => {
@@ -218,6 +252,31 @@ function TestTypeCard({ testType, entries, onEdit, onDelete }) {
         })}
       </div>
     </Card>
+  )
+}
+
+function SectionTargetRow({ label, max, best, target, isFocus, onCommit }) {
+  const [value, setValue] = useState(target ?? '')
+  useEffect(() => setValue(target ?? ''), [target])
+  const gap = scoreGap(target, best ?? 0)
+
+  return (
+    <div className={`flex items-center justify-between gap-3 p-3 rounded-xl ${isFocus ? 'bg-amber-50 dark:bg-amber-500/10' : 'bg-black/[0.02] dark:bg-white/[0.03]'}`}>
+      <div>
+        <p className="text-[13px] font-medium text-neutral-700 dark:text-neutral-200">{label}</p>
+        <p className="text-[12px] text-neutral-400 mt-0.5">Best: {best ?? '—'} / {max}</p>
+      </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <Input
+          className="w-16 !py-1 !px-2 text-[13px]"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={() => onCommit(value)}
+          placeholder="Target"
+        />
+        {gap !== null && <Badge tone={gap <= 0 ? 'green' : 'amber'}>{gap <= 0 ? 'Met' : `+${gap}`}</Badge>}
+      </div>
+    </div>
   )
 }
 

@@ -106,6 +106,22 @@ export function bestSingleAttempt(entries, testTypeKey) {
   return composites.length > 0 ? Math.max(...composites) : null
 }
 
+// Best value seen per section across every completed sitting — the raw
+// material for both superscoring and the per-section breakdown that tells a
+// student what to actually practice, not just whether a composite number
+// was hit.
+export function bestSectionScores(entries, testTypeKey) {
+  const type = TEST_TYPES[testTypeKey]
+  if (!type) return {}
+  const completed = entries.filter((e) => e.testType === testTypeKey && e.status === 'completed')
+  const best = {}
+  type.sections.forEach((s) => {
+    const values = completed.map((e) => Number(e.scores[s.key])).filter((v) => Number.isFinite(v))
+    if (values.length > 0) best[s.key] = Math.max(...values)
+  })
+  return best
+}
+
 // Many colleges superscore SAT/ACT/TOEFL — take the best individual section
 // score across every sitting, then recombine. Only meaningful across 2+
 // completed attempts, and not offered for band-scored or single-number tests.
@@ -117,18 +133,30 @@ export function superscore(entries, testTypeKey) {
   if (completed.length < 2) return null
 
   const relevant = compositeSections(type)
-  const bestPerSection = {}
-  relevant.forEach((s) => {
-    const values = completed.map((e) => Number(e.scores[s.key])).filter((v) => Number.isFinite(v))
-    if (values.length > 0) bestPerSection[s.key] = Math.max(...values)
-  })
-  if (Object.keys(bestPerSection).length < relevant.length) return null
+  const bestPerSection = bestSectionScores(entries, testTypeKey)
+  if (relevant.some((s) => bestPerSection[s.key] === undefined)) return null
 
   return computeComposite(testTypeKey, bestPerSection)
 }
 
 export function scoreGap(target, best) {
-  if (target === '' || target === null || target === undefined || best === null) return null
+  if (target === '' || target === null || target === undefined || best === null || best === undefined) return null
   const t = Number(target)
   return Number.isFinite(t) ? +(t - best).toFixed(1) : null
+}
+
+// Which section is furthest from its own target — the concrete "practice
+// this" answer a single composite gap can't give. Only considers sections
+// that actually have a target set and aren't already met.
+export function focusSection(testTypeKey, sectionTargets, bestSections) {
+  const type = TEST_TYPES[testTypeKey]
+  if (!type || !sectionTargets) return null
+
+  let worst = null
+  compositeSections(type).forEach((s) => {
+    const gap = scoreGap(sectionTargets[s.key], bestSections[s.key] ?? 0)
+    if (gap === null || gap <= 0) return
+    if (!worst || gap > worst.gap) worst = { key: s.key, label: s.label, gap, best: bestSections[s.key] ?? 0, target: Number(sectionTargets[s.key]) }
+  })
+  return worst
 }
