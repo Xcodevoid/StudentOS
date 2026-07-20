@@ -126,6 +126,21 @@ export function computeNorthStar(data, asOf = new Date()) {
     )
   })
 
+  // Evidence Vault items are supporting proof (a certificate, a link, a
+  // note) rather than the substantial ongoing work a project or activity
+  // represents, so they carry a lighter weight.
+  ;(data.evidence || []).forEach((e) => {
+    ;(e.dimensions || []).forEach((dimId) =>
+      addEvidence(dimId, {
+        id: `evidence-${e.id}-${dimId}`,
+        title: e.title || 'Untitled evidence',
+        date: e.date || '',
+        weight: 15,
+        source: 'Evidence Vault',
+      })
+    )
+  })
+
   // Character draws on real Momentum signals — discipline and resilience
   // shown through daily follow-through, not a separate self-rating.
   const activeHabits = (data.habits || []).filter((h) => !h.archived)
@@ -217,6 +232,37 @@ export function computeNorthStarAsOf(data, cutoffDateStr) {
     habitLogs: (data.habitLogs || []).filter((l) => l.date && l.date <= cutoffDateStr),
     reflections: (data.reflections || []).filter((r) => r.date && r.date <= cutoffDateStr),
     commitments: (data.commitments || []).filter((c) => c.date && c.date <= cutoffDateStr),
+    evidence: (data.evidence || []).filter((e) => e.date && e.date <= cutoffDateStr),
   }
   return computeNorthStar(filtered, new Date(cutoffDateStr))
+}
+
+// Shared by Growth Analytics and the Dashboard's growth teaser — "what
+// changed in the last N days" per dimension, plus the two headline callouts.
+export function computeGrowthSummary(data, days = 30) {
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - days)
+
+  const now = computeNorthStar(data)
+  const then = computeNorthStarAsOf(data, todayKey(cutoff))
+
+  const deltas = now.dimensions.map((dim, i) => {
+    const thenDim = then.dimensions[i]
+    const nowScore = dim.score
+    const thenScore = thenDim.score
+    const isNew = thenScore === null && nowScore !== null
+    const delta = isNew ? nowScore : (nowScore ?? 0) - (thenScore ?? 0)
+    return { ...dim, delta, isNew, hasNow: nowScore !== null }
+  })
+
+  const withGrowth = deltas.filter((d) => d.hasNow && d.delta > 0)
+  const mostDeveloped = withGrowth.length > 0 ? withGrowth.reduce((a, b) => (b.delta > a.delta ? b : a)) : null
+
+  // A dimension with no evidence at all is automatically the biggest
+  // opportunity — it hasn't been started, which outranks "started but low."
+  const untouched = deltas.find((d) => !d.hasNow)
+  const lowestScored = [...deltas].filter((d) => d.hasNow).sort((a, b) => a.score - b.score)[0]
+  const growthOpportunity = untouched || lowestScored || null
+
+  return { deltas, mostDeveloped, growthOpportunity }
 }

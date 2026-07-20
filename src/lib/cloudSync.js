@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
 import { TABLES, toDb, fromDb, profileToDb, profileFromDb } from './cloudMap'
 import { defaultData } from './storage'
+import { wipeEvidenceFiles } from './evidenceStorage'
 
 export async function pullAllFromCloud(userId) {
   const { data: profileRow, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
@@ -34,6 +35,7 @@ export async function pullAllFromCloud(userId) {
 
 export async function wipeAllCloud(userId) {
   await Promise.all(Object.values(TABLES).map((table) => supabase.from(table).delete().eq('user_id', userId)))
+  await wipeEvidenceFiles(userId)
 }
 
 // Replaces everything in the cloud with the given local dataset — used both
@@ -71,6 +73,7 @@ export function hasMeaningfulData(data) {
     data.projects.length > 0 ||
     data.activities.length > 0 ||
     data.opportunities.length > 0 ||
-    data.tasks.length > 0
+    data.tasks.length > 0 ||
+    data.evidence.length > 0
   )
 }

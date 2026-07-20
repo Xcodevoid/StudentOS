@@ -273,12 +273,34 @@ create table if not exists reflections (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Evidence Vault ----------
+-- Proof of growth: certificates, screenshots, links, research notes, awards,
+-- presentations, photos. `url` holds an external link (link-type evidence);
+-- `storage_path` holds a path into the private `evidence` Storage bucket for
+-- uploaded files — never both. A file's real URL is never persisted (the
+-- bucket is private): resolve it on demand with a signed URL, see
+-- src/lib/evidenceStorage.js.
+create table if not exists evidence (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default '',
+  type text not null default 'note',
+  url text not null default '',
+  storage_path text,
+  linked_project_id uuid references projects(id) on delete set null,
+  linked_activity_id uuid references activities(id) on delete set null,
+  dimensions jsonb not null default '[]'::jsonb,
+  date date,
+  notes text not null default '',
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -288,6 +310,32 @@ begin
     );
   end loop;
 end $$;
+
+-- ---------- Evidence Vault storage bucket ----------
+-- Private bucket — files are only ever reached via a short-lived signed URL
+-- (supabase.storage.from('evidence').createSignedUrl(...)), never a public
+-- URL. RLS on storage.objects scopes every operation to files stored under
+-- a {auth.uid()}/... path prefix, so uploading, listing, or deleting
+-- another student's file is impossible even with the anon key.
+insert into storage.buckets (id, name, public)
+values ('evidence', 'evidence', false)
+on conflict (id) do nothing;
+
+drop policy if exists "evidence: owner select" on storage.objects;
+create policy "evidence: owner select" on storage.objects
+  for select using (bucket_id = 'evidence' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "evidence: owner insert" on storage.objects;
+create policy "evidence: owner insert" on storage.objects
+  for insert with check (bucket_id = 'evidence' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "evidence: owner update" on storage.objects;
+create policy "evidence: owner update" on storage.objects
+  for update using (bucket_id = 'evidence' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "evidence: owner delete" on storage.objects;
+create policy "evidence: owner delete" on storage.objects
+  for delete using (bucket_id = 'evidence' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ---------- public portfolio sharing ----------
 -- Every table above is locked to auth.uid() = user_id, so an anonymous site
@@ -339,3 +387,6 @@ create index if not exists idx_habit_logs_user on habit_logs(user_id);
 create index if not exists idx_habit_logs_habit on habit_logs(habit_id);
 create index if not exists idx_reflections_user on reflections(user_id);
 create index if not exists idx_reflections_date on reflections(date);
+create index if not exists idx_evidence_user on evidence(user_id);
+create index if not exists idx_evidence_project on evidence(linked_project_id);
+create index if not exists idx_evidence_activity on evidence(linked_activity_id);

@@ -35,6 +35,7 @@ export function defaultData() {
     habits: [],
     habitLogs: [],
     reflections: [],
+    evidence: [],
     streak: { datesActive: [] },
     badges: { seen: [] },
     notifications: { remindersNotified: {} },

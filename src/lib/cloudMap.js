@@ -20,6 +20,7 @@ export const TABLES = {
   habits: 'habits',
   habitLogs: 'habit_logs',
   reflections: 'reflections',
+  evidence: 'evidence',
 }
 
 // entity -> { appKey: dbColumn }
@@ -47,6 +48,7 @@ const FIELD_MAP = {
   momentumSessions: { commitmentId: 'commitment_id', taskLabel: 'task_label', plannedMinutes: 'planned_minutes', actualMinutes: 'actual_minutes', goalCompleted: 'goal_completed', focusRating: 'focus_rating' },
   distractions: { minutesLost: 'minutes_lost' },
   habitLogs: { habitId: 'habit_id' },
+  evidence: { linkedProjectId: 'linked_project_id', linkedActivityId: 'linked_activity_id', storagePath: 'storage_path' },
 }
 
 // Fields that are numeric / date / uuid-FK columns, where an empty string
@@ -69,6 +71,7 @@ const NULLABLE_FIELDS = {
   distractions: ['date'],
   habitLogs: ['date'],
   reflections: ['date'],
+  evidence: ['date', 'linkedProjectId', 'linkedActivityId', 'storagePath'],
 }
 
 // Nullable fields where null has a distinct tri-state meaning from '' (right

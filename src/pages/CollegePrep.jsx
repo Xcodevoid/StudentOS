@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-  Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap, FileText, Copy, Printer,
-  Trophy, FlaskConical, Award, Sun,
-} from 'lucide-react'
+import { Plus, Pencil, Trash2, Compass, Flag, Users, HeartHandshake, Briefcase, GraduationCap, FileText, Copy, Printer } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
@@ -12,6 +9,7 @@ import { Modal } from '../components/ui/Modal'
 import { Badge, EmptyState } from '../components/ui/Misc'
 import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dates'
 import { DEFAULT_ACTIVITY_DIMENSIONS } from '../lib/northStar'
+import { CATEGORY_TYPES, APPLICATION_ROUNDS, OPPORTUNITY_STATUS } from '../lib/opportunities'
 import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
 import { PolishChecklist } from '../components/collegeprep/PolishChecklist'
 import { OpportunityChecklist } from '../components/collegeprep/OpportunityChecklist'
@@ -33,28 +31,6 @@ const ACTIVITY_TYPES = {
   activity: { label: 'Activity', icon: Users, tone: 'accent' },
   volunteering: { label: 'Volunteering', icon: HeartHandshake, tone: 'green' },
   internship: { label: 'Internship', icon: Briefcase, tone: 'purple' },
-}
-
-const CATEGORY_TYPES = {
-  'college-application': { label: 'College Application', icon: GraduationCap, tone: 'accent' },
-  competition: { label: 'Competition', icon: Trophy, tone: 'purple' },
-  'research-program': { label: 'Research Program', icon: FlaskConical, tone: 'green' },
-  internship: { label: 'Internship', icon: Briefcase, tone: 'neutral' },
-  scholarship: { label: 'Scholarship', icon: Award, tone: 'amber' },
-  'summer-program': { label: 'Summer Program', icon: Sun, tone: 'amber' },
-}
-
-const APPLICATION_ROUNDS = {
-  '': { label: 'No round set', tone: 'neutral' },
-  'early-action': { label: 'Early Action', tone: 'accent' },
-  'early-decision': { label: 'Early Decision', tone: 'purple' },
-  regular: { label: 'Regular Decision', tone: 'neutral' },
-}
-
-const OPPORTUNITY_STATUS = {
-  'not-started': { label: 'Not started', tone: 'neutral' },
-  'in-progress': { label: 'In progress', tone: 'amber' },
-  submitted: { label: 'Submitted', tone: 'green' },
 }
 
 const emptyActivity = {

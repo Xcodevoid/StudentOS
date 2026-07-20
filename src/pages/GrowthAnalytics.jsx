@@ -2,39 +2,12 @@ import { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus, Sparkles, Target } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { Card } from '../components/ui/Card'
-import { computeNorthStar, computeNorthStarAsOf } from '../lib/northStar'
-import { todayKey } from '../lib/momentum'
+import { computeGrowthSummary } from '../lib/northStar'
 
 export default function GrowthAnalytics() {
   const { data } = useStore()
 
-  const { deltas, mostDeveloped, growthOpportunity } = useMemo(() => {
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - 30)
-
-    const now = computeNorthStar(data)
-    const then = computeNorthStarAsOf(data, todayKey(cutoff))
-
-    const deltas = now.dimensions.map((dim, i) => {
-      const thenDim = then.dimensions[i]
-      const nowScore = dim.score
-      const thenScore = thenDim.score
-      const isNew = thenScore === null && nowScore !== null
-      const delta = isNew ? nowScore : (nowScore ?? 0) - (thenScore ?? 0)
-      return { ...dim, delta, isNew, hasNow: nowScore !== null }
-    })
-
-    const withGrowth = deltas.filter((d) => d.hasNow && d.delta > 0)
-    const mostDeveloped = withGrowth.length > 0 ? withGrowth.reduce((a, b) => (b.delta > a.delta ? b : a)) : null
-
-    // A dimension with no evidence at all is automatically the biggest
-    // opportunity — it hasn't been started, which outranks "started but low."
-    const untouched = deltas.find((d) => !d.hasNow)
-    const lowestScored = [...deltas].filter((d) => d.hasNow).sort((a, b) => a.score - b.score)[0]
-    const growthOpportunity = untouched || lowestScored || null
-
-    return { deltas, mostDeveloped, growthOpportunity }
-  }, [data])
+  const { deltas, mostDeveloped, growthOpportunity } = useMemo(() => computeGrowthSummary(data), [data])
 
   return (
     <div className="space-y-6">

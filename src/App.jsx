@@ -10,6 +10,8 @@ import Dashboard from './pages/Dashboard'
 import Academics from './pages/Academics'
 import Exams from './pages/Exams'
 import Portfolio from './pages/Portfolio'
+import EvidenceVault from './pages/EvidenceVault'
+import StoryBuilder from './pages/StoryBuilder'
 import CollegePrep from './pages/CollegePrep'
 import CalendarPage from './pages/Calendar'
 import Momentum from './pages/Momentum'
@@ -42,6 +44,8 @@ function App() {
                   <Route path="/academics" element={<Academics />} />
                   <Route path="/exams" element={<Exams />} />
                   <Route path="/portfolio" element={<Portfolio />} />
+                  <Route path="/evidence" element={<EvidenceVault />} />
+                  <Route path="/story" element={<StoryBuilder />} />
                   <Route path="/college-prep" element={<CollegePrep />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
