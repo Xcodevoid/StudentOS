@@ -1,89 +1,49 @@
-import { HeartHandshake, Users, Rocket, Code2, FlaskConical, ShieldCheck } from 'lucide-react'
+import {
+  HeartHandshake, Users, Rocket, Code2, FlaskConical, ShieldCheck,
+  Mic2, Brain, Palette, Compass, Handshake, Feather, Trophy, Lightbulb,
+} from 'lucide-react'
 import { computeStreak } from './streak'
 import { lastNDays, todayKey } from './momentum'
 
-export const DIMENSIONS = [
-  {
-    id: 'community',
-    label: 'Community',
-    shortLabel: 'Community',
-    icon: HeartHandshake,
-    tagline: 'Contribution to others, service, helping people',
-  },
-  {
-    id: 'leadership',
-    label: 'Leadership',
-    shortLabel: 'Leadership',
-    icon: Users,
-    tagline: 'Taking initiative, leading teams, creating change',
-  },
-  {
-    id: 'impact',
-    label: 'Impact',
-    shortLabel: 'Impact',
-    icon: Rocket,
-    tagline: 'Measurable results, projects, achievements',
-  },
-  {
-    id: 'skills',
-    label: 'Skills',
-    shortLabel: 'Skills',
-    icon: Code2,
-    tagline: 'Technical skills, communication, creativity',
-  },
-  {
-    id: 'curiosity',
-    label: 'Intellectual Curiosity',
-    shortLabel: 'Curiosity',
-    icon: FlaskConical,
-    tagline: 'Learning beyond school, research, exploration',
-  },
-  {
-    id: 'character',
-    label: 'Character',
-    shortLabel: 'Character',
-    icon: ShieldCheck,
-    tagline: 'Discipline, resilience, growth mindset',
-  },
+// A bank of characteristics students can recognize in themselves — not a
+// universal rubric everyone is scored against. The first 6 ids are kept
+// stable from North Star's original 6 dimensions (only labels changed, to
+// read less like admissions jargon) so every existing tagged project,
+// activity, and piece of evidence keeps working with zero migration.
+export const CHARACTERISTICS = [
+  { id: 'community', label: 'Community-Minded', shortLabel: 'Community', icon: HeartHandshake, tone: 'green', tagline: 'Contribution to others, service, helping people' },
+  { id: 'leadership', label: 'Leader', shortLabel: 'Leader', icon: Users, tone: 'accent', tagline: 'Taking initiative, leading teams, creating change' },
+  { id: 'impact', label: 'Doer', shortLabel: 'Doer', icon: Rocket, tone: 'amber', tagline: 'Gets real things done, ships results' },
+  { id: 'skills', label: 'Builder / Maker', shortLabel: 'Builder', icon: Code2, tone: 'purple', tagline: 'Builds and creates — technical or hands-on' },
+  { id: 'curiosity', label: 'Curious', shortLabel: 'Curious', icon: FlaskConical, tone: 'accent', tagline: 'Learning beyond school, research, exploration' },
+  { id: 'character', label: 'Resilient', shortLabel: 'Resilient', icon: ShieldCheck, tone: 'green', tagline: 'Discipline, persistence through setbacks' },
+  { id: 'communicator', label: 'Communicator', shortLabel: 'Communicator', icon: Mic2, tone: 'amber', tagline: 'Expressing ideas clearly, presenting, persuading' },
+  { id: 'analytical', label: 'Analytical Thinker', shortLabel: 'Analytical', icon: Brain, tone: 'purple', tagline: 'Logic, data, breaking down hard problems' },
+  { id: 'creative', label: 'Creative', shortLabel: 'Creative', icon: Palette, tone: 'accent', tagline: 'Art, design, original expression' },
+  { id: 'strategic', label: 'Strategic Planner', shortLabel: 'Strategic', icon: Compass, tone: 'green', tagline: 'Foresight, organizing complexity, planning ahead' },
+  { id: 'collaborator', label: 'Collaborator', shortLabel: 'Collaborator', icon: Handshake, tone: 'amber', tagline: 'Teamwork, bringing people together' },
+  { id: 'independent', label: 'Independent', shortLabel: 'Independent', icon: Feather, tone: 'purple', tagline: 'Self-directed, takes initiative alone' },
+  { id: 'competitive', label: 'Competitive', shortLabel: 'Competitive', icon: Trophy, tone: 'accent', tagline: 'Driven by achievement, winning, personal bests' },
+  { id: 'innovator', label: 'Innovator', shortLabel: 'Innovator', icon: Lightbulb, tone: 'green', tagline: 'New ideas, entrepreneurial thinking' },
 ]
 
-export const DIMENSION_IDS = DIMENSIONS.map((d) => d.id)
+export const CHARACTERISTIC_IDS = CHARACTERISTICS.map((c) => c.id)
+export const CHARACTERISTIC_TONE = Object.fromEntries(CHARACTERISTICS.map((c) => [c.id, c.tone]))
 
 // Sensible starting tags so logging an entry doesn't require thinking about
-// North Star first — students can always adjust which dimensions it grows.
+// North Star first — students can always adjust which characteristics it grows.
 export const DEFAULT_PROJECT_DIMENSIONS = {
   project: ['skills', 'impact'],
-  achievement: ['impact'],
-  competition: ['leadership', 'impact'],
-  research: ['curiosity', 'skills'],
-  website: ['skills'],
+  achievement: ['impact', 'competitive'],
+  competition: ['leadership', 'competitive'],
+  research: ['curiosity', 'analytical'],
+  website: ['skills', 'creative'],
 }
 
 export const DEFAULT_ACTIVITY_DIMENSIONS = {
   activity: ['leadership', 'community'],
   volunteering: ['community'],
   internship: ['skills', 'leadership'],
-}
-
-const TIERS = [
-  { min: 75, label: 'Exceptional' },
-  { min: 50, label: 'Strong' },
-  { min: 25, label: 'Developing' },
-  { min: 1, label: 'Emerging' },
-]
-
-function tierFor(score) {
-  return (TIERS.find((t) => score >= t.min) || { label: 'Emerging' }).label
-}
-
-// Maps a dimension's score to the app's existing tone vocabulary (Badge /
-// ProgressRing). No red — this is a growth journey, not a pass/fail signal.
-export function tierTone(score) {
-  if (score === null || score === undefined) return 'neutral'
-  if (score >= 75) return 'purple'
-  if (score >= 50) return 'green'
-  if (score >= 25) return 'amber'
-  return 'accent'
 }
 
 // `asOf` lets Growth Analytics ask "what did North Star look like a month
@@ -94,7 +54,7 @@ export function computeNorthStar(data, asOf = new Date()) {
   const week7 = lastNDays(7, asOf)
   const month30 = lastNDays(30, asOf)
 
-  const evidenceByDim = Object.fromEntries(DIMENSION_IDS.map((id) => [id, []]))
+  const evidenceByDim = Object.fromEntries(CHARACTERISTIC_IDS.map((id) => [id, []]))
   const addEvidence = (dimId, entry) => {
     if (evidenceByDim[dimId]) evidenceByDim[dimId].push(entry)
   }
@@ -106,7 +66,6 @@ export function computeNorthStar(data, asOf = new Date()) {
         id: `project-${p.id}-${dimId}`,
         title: p.title || 'Untitled project',
         date: p.date || '',
-        weight: 22,
         source: 'Portfolio',
       })
     )
@@ -114,35 +73,29 @@ export function computeNorthStar(data, asOf = new Date()) {
 
   ;(data.activities || []).forEach((a) => {
     const dims = a.dimensions?.length ? a.dimensions : DEFAULT_ACTIVITY_DIMENSIONS[a.category] || []
-    const sustained = Number(a.hoursPerWeek) >= 3 ? 6 : 0
     dims.forEach((dimId) =>
       addEvidence(dimId, {
         id: `activity-${a.id}-${dimId}`,
         title: a.title || 'Untitled activity',
         date: a.startDate || '',
-        weight: 18 + sustained,
         source: 'Portfolio',
       })
     )
   })
 
-  // Evidence Vault items are supporting proof (a certificate, a link, a
-  // note) rather than the substantial ongoing work a project or activity
-  // represents, so they carry a lighter weight.
   ;(data.evidence || []).forEach((e) => {
     ;(e.dimensions || []).forEach((dimId) =>
       addEvidence(dimId, {
         id: `evidence-${e.id}-${dimId}`,
         title: e.title || 'Untitled evidence',
         date: e.date || '',
-        weight: 15,
         source: 'Evidence Vault',
       })
     )
   })
 
-  // Character draws on real daily-practice signals — discipline and resilience
-  // shown through daily follow-through, not a separate self-rating.
+  // Resilience draws on real daily-practice signals — discipline shown
+  // through follow-through, not a separate self-rating.
   const activeHabits = (data.habits || []).filter((h) => !h.archived)
   let bestStreak = 0
   let bestHabitTitle = ''
@@ -159,7 +112,6 @@ export function computeNorthStar(data, asOf = new Date()) {
       id: 'character-habit-streak',
       title: `${bestStreak}-day streak on "${bestHabitTitle}"`,
       date: todayKey(asOf),
-      weight: Math.min(30, Math.round(bestStreak * 1.5)),
       source: 'Habits',
     })
   }
@@ -170,7 +122,6 @@ export function computeNorthStar(data, asOf = new Date()) {
       id: 'character-reflections',
       title: `${recentReflections.length} nightly reflection${recentReflections.length === 1 ? '' : 's'} this month`,
       date: [...recentReflections].sort((a, b) => b.date.localeCompare(a.date))[0]?.date || todayKey(asOf),
-      weight: Math.min(20, recentReflections.length * 5),
       source: 'Reflection',
     })
   }
@@ -182,48 +133,36 @@ export function computeNorthStar(data, asOf = new Date()) {
       id: 'character-follow-through',
       title: `${Math.round(rate * 100)}% of daily missions completed this month`,
       date: todayKey(asOf),
-      weight: Math.min(20, Math.round(rate * 20)),
       source: 'Daily Mission',
     })
   }
 
-  const dimensions = DIMENSIONS.map((dim) => {
+  const dimensions = CHARACTERISTICS.map((dim) => {
     const evidence = evidenceByDim[dim.id].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-    const rawScore = evidence.reduce((sum, e) => sum + e.weight, 0)
-    const hasEvidence = evidence.length > 0
-    const score = hasEvidence ? Math.max(0, Math.min(100, Math.round(rawScore))) : null
     const recentlyActive = evidence.some((e) => e.date && week7.includes(e.date))
     return {
       ...dim,
-      score,
-      tier: hasEvidence ? tierFor(score) : null,
       evidence,
+      evidenceCount: evidence.length,
       recentlyActive,
     }
   })
 
-  const scored = dimensions.filter((d) => d.score !== null)
-  const overallScore = scored.length > 0 ? Math.round(scored.reduce((sum, d) => sum + d.score, 0) / scored.length) : null
-
-  return {
-    dimensions,
-    overallScore,
-    overallTier: overallScore !== null ? tierFor(overallScore) : null,
-  }
+  return { dimensions }
 }
 
 // Reconstructs "what North Star looked like as of a past date" — used by
-// Growth Analytics to diff against the live score. Entries with no date
-// (or a date after the cutoff) are excluded, since we can't know they
+// Growth Analytics to diff against the live evidence counts. Entries with no
+// date (or a date after the cutoff) are excluded, since we can't know they
 // existed yet; entries with no date at all simply never count toward a
 // historical snapshot (they still count in the live computeNorthStar(data)
 // call, which doesn't filter anything).
 //
-// Known limitation: dimension tags and fields like hoursPerWeek reflect
-// their *current* values, not what they were as of cutoffDateStr — nothing
-// in this data model is versioned, so retagging a project today reshapes
-// its contribution to past snapshots too. Acceptable for a "your growth
-// this month" trend line, not for precise historical audit.
+// Known limitation: dimension tags and fields reflect their *current*
+// values, not what they were as of cutoffDateStr — nothing in this data
+// model is versioned, so retagging a project today reshapes its
+// contribution to past snapshots too. Acceptable for a "your growth this
+// month" trend line, not for precise historical audit.
 export function computeNorthStarAsOf(data, cutoffDateStr) {
   const filtered = {
     ...data,
@@ -238,31 +177,33 @@ export function computeNorthStarAsOf(data, cutoffDateStr) {
 }
 
 // Shared by Growth Analytics and the Dashboard's growth teaser — "what
-// changed in the last N days" per dimension, plus the two headline callouts.
-export function computeGrowthSummary(data, days = 30) {
+// changed in the last N days" per characteristic, plus the two headline
+// callouts. `chosenIds` scopes everything to the characteristics a student
+// has actually picked to track (defaults to all, for callers that don't care).
+export function computeGrowthSummary(data, chosenIds = null, days = 30) {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - days)
 
   const now = computeNorthStar(data)
   const then = computeNorthStarAsOf(data, todayKey(cutoff))
+  const ids = chosenIds && chosenIds.length > 0 ? chosenIds : CHARACTERISTIC_IDS
 
-  const deltas = now.dimensions.map((dim, i) => {
-    const thenDim = then.dimensions[i]
-    const nowScore = dim.score
-    const thenScore = thenDim.score
-    const isNew = thenScore === null && nowScore !== null
-    const delta = isNew ? nowScore : (nowScore ?? 0) - (thenScore ?? 0)
-    return { ...dim, delta, isNew, hasNow: nowScore !== null }
-  })
+  const deltas = now.dimensions
+    .filter((dim) => ids.includes(dim.id))
+    .map((dim) => {
+      const thenDim = then.dimensions.find((d) => d.id === dim.id)
+      const delta = dim.evidenceCount - (thenDim?.evidenceCount ?? 0)
+      return { ...dim, delta }
+    })
 
-  const withGrowth = deltas.filter((d) => d.hasNow && d.delta > 0)
+  const withGrowth = deltas.filter((d) => d.delta > 0)
   const mostDeveloped = withGrowth.length > 0 ? withGrowth.reduce((a, b) => (b.delta > a.delta ? b : a)) : null
 
-  // A dimension with no evidence at all is automatically the biggest
+  // A characteristic with no evidence at all is automatically the biggest
   // opportunity — it hasn't been started, which outranks "started but low."
-  const untouched = deltas.find((d) => !d.hasNow)
-  const lowestScored = [...deltas].filter((d) => d.hasNow).sort((a, b) => a.score - b.score)[0]
-  const growthOpportunity = untouched || lowestScored || null
+  const untouched = deltas.find((d) => d.evidenceCount === 0)
+  const lowestCount = [...deltas].sort((a, b) => a.evidenceCount - b.evidenceCount)[0]
+  const growthOpportunity = untouched || lowestCount || null
 
   return { deltas, mostDeveloped, growthOpportunity }
 }

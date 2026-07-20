@@ -10,7 +10,8 @@ const CHECK_INTERVAL_MS = 60_000
 // Mounted once near the app root. Two jobs, both silent unless something is
 // actually due: (1) fire browser notifications for newly-due items and
 // exam/test countdown milestones, deduped via data.notifications.remindersNotified;
-// (2) toast a North Star dimension crossing into a new tier (reuses the same
+// (2) toast a North Star characteristic crossing an evidence-count milestone
+// (1st/3rd/5th/10th piece) (reuses the same
 // "seen" dedup store that badge unlocks used to).
 export default function BackgroundEngine() {
   const { data, isReminded, markReminded, markBadgesSeen } = useStore()
@@ -49,18 +50,21 @@ export default function BackgroundEngine() {
   }, [data])
 
   useEffect(() => {
+    const chosenIds = data.northStar.characteristics || []
+    if (chosenIds.length === 0) return
     const northStar = computeNorthStar(data)
+    const milestoneCounts = [1, 3, 5, 10]
     const newMilestones = northStar.dimensions
-      .filter((d) => d.tier)
-      .map((d) => ({ id: `northstar-${d.id}-${d.tier}`, label: d.label, tier: d.tier }))
+      .filter((d) => chosenIds.includes(d.id) && milestoneCounts.includes(d.evidenceCount))
+      .map((d) => ({ id: `northstar-${d.id}-${d.evidenceCount}`, label: d.label, count: d.evidenceCount }))
       .filter((m) => !data.badges.seen.includes(m.id))
     if (newMilestones.length === 0) return
     newMilestones.forEach((m) => {
-      push(`${m.label} is growing`, { tone: 'celebrate', description: `Now ${m.tier} — keep building evidence.` })
+      push(`${m.label} is growing`, { tone: 'celebrate', description: `${m.count} piece${m.count === 1 ? '' : 's'} of evidence now — keep building.` })
     })
     markBadgesSeen(newMilestones.map((m) => m.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.projects, data.activities, data.habits, data.habitLogs, data.reflections, data.commitments])
+  }, [data.projects, data.activities, data.habits, data.habitLogs, data.reflections, data.commitments, data.northStar.characteristics])
 
   return null
 }

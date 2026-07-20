@@ -11,7 +11,7 @@ import { Field, Input, Select, Textarea } from '../ui/Form'
 import { Modal } from '../ui/Modal'
 import { Badge, EmptyState } from '../ui/Misc'
 import { DimensionTagPicker } from '../northstar/DimensionTagPicker'
-import { DIMENSIONS } from '../../lib/northStar'
+import { CHARACTERISTICS } from '../../lib/northStar'
 import { formatDate } from '../../lib/dates'
 import { todayKey } from '../../lib/momentum'
 import { uploadEvidenceFile, getEvidenceSignedUrl, deleteEvidenceFile } from '../../lib/evidenceStorage'
@@ -26,7 +26,7 @@ const EVIDENCE_TYPES = {
   photo: { label: 'Photo', icon: Camera, needsFile: true },
 }
 
-const DIM_BY_ID = Object.fromEntries(DIMENSIONS.map((d) => [d.id, d]))
+const DIM_BY_ID = Object.fromEntries(CHARACTERISTICS.map((d) => [d.id, d]))
 
 const emptyEvidence = {
   title: '',

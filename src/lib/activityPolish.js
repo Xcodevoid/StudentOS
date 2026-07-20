@@ -24,6 +24,14 @@ export const ACTION_VERBS = {
   community: ['Volunteered', 'Organized', 'Supported', 'Mentored', 'Tutored', 'Advocated', 'Served'],
   curiosity: ['Researched', 'Investigated', 'Analyzed', 'Explored', 'Studied', 'Presented'],
   character: ['Persisted', 'Overcame', 'Balanced', 'Sustained', 'Committed'],
+  communicator: ['Presented', 'Communicated', 'Persuaded', 'Pitched', 'Explained', 'Authored'],
+  analytical: ['Analyzed', 'Solved', 'Modeled', 'Diagnosed', 'Evaluated', 'Optimized'],
+  creative: ['Designed', 'Composed', 'Illustrated', 'Crafted', 'Produced', 'Reimagined'],
+  strategic: ['Planned', 'Strategized', 'Orchestrated', 'Structured', 'Streamlined'],
+  collaborator: ['Collaborated', 'Partnered', 'Facilitated', 'Coordinated', 'United'],
+  independent: ['Initiated', 'Launched', 'Pioneered', 'Self-taught', 'Drove'],
+  competitive: ['Won', 'Ranked', 'Competed', 'Placed', 'Qualified'],
+  innovator: ['Invented', 'Pioneered', 'Prototyped', 'Reimagined', 'Innovated'],
 }
 
 const DEFAULT_VERBS = ['Led', 'Built', 'Organized', 'Achieved', 'Created', 'Launched']

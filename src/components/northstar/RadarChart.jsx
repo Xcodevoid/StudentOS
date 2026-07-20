@@ -6,10 +6,12 @@ const TONE = {
   purple: { stroke: 'stroke-purple-500', fill: 'fill-purple-500/10', dot: 'fill-purple-500' },
 }
 
-// A single-series radar: one shape, one hue (by overall tier) — never a rainbow
-// per axis. Grid rings are solid hairlines; the polygon is a soft ~10% wash
-// with a 2px stroke; vertex dots carry a surface-color ring so they read
-// cleanly where spokes cross them.
+// A single-series radar: one shape, one hue — never a rainbow per axis. Grid
+// rings are solid hairlines; the polygon is a soft ~10% wash with a 2px
+// stroke; vertex dots carry a surface-color ring so they read cleanly where
+// spokes cross them. Plots evidence count normalized to the highest count
+// among the given dimensions — a relative "where have I built the most
+// proof" shape, not a graded score against a universal rubric.
 export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels = true }) {
   const center = size / 2
   const labelGutter = showLabels ? 46 : 8
@@ -18,6 +20,7 @@ export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels
   const angleStep = (Math.PI * 2) / count
   const startAngle = -Math.PI / 2
   const colors = TONE[tone] || TONE.accent
+  const maxCount = Math.max(1, ...dimensions.map((d) => d.evidenceCount ?? 0))
 
   const pointAt = (i, rPct) => {
     const angle = startAngle + i * angleStep
@@ -26,7 +29,7 @@ export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels
   }
 
   const rings = [0.25, 0.5, 0.75, 1]
-  const scorePoints = dimensions.map((d, i) => pointAt(i, (d.score ?? 0) / 100).join(',')).join(' ')
+  const scorePoints = dimensions.map((d, i) => pointAt(i, (d.evidenceCount ?? 0) / maxCount).join(',')).join(' ')
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -51,12 +54,13 @@ export function RadarChart({ dimensions, tone = 'accent', size = 300, showLabels
           className={`${colors.fill} ${colors.stroke} transition-all duration-700 ease-out`}
         />
         {dimensions.map((d, i) => {
-          const [x, y] = pointAt(i, (d.score ?? 0) / 100)
+          const [x, y] = pointAt(i, (d.evidenceCount ?? 0) / maxCount)
+          const count = d.evidenceCount ?? 0
           return (
             <g key={d.id}>
               <circle cx={x} cy={y} r={7} className="fill-white dark:fill-neutral-900" />
               <circle cx={x} cy={y} r={5} className={`${colors.dot} ${d.recentlyActive ? 'animate-pulse' : ''}`}>
-                <title>{`${d.label}: ${d.score ?? 0}/100${d.tier ? ` — ${d.tier}` : ' — no evidence yet'}`}</title>
+                <title>{`${d.label}: ${count} piece${count === 1 ? '' : 's'} of evidence`}</title>
               </circle>
             </g>
           )

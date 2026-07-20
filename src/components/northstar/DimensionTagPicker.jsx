@@ -1,7 +1,7 @@
-import { DIMENSIONS } from '../../lib/northStar'
+import { CHARACTERISTICS } from '../../lib/northStar'
 
 // Shared multi-select used on the Portfolio and College Prep forms so a
-// project or activity can declare which parts of North Star it grows.
+// project or activity can declare which characteristics it grows.
 export function DimensionTagPicker({ value, onChange }) {
   function toggle(id) {
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
@@ -9,7 +9,7 @@ export function DimensionTagPicker({ value, onChange }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {DIMENSIONS.map((dim) => {
+      {CHARACTERISTICS.map((dim) => {
         const active = value.includes(dim.id)
         return (
           <button

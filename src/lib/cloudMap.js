@@ -157,10 +157,9 @@ export function profileFromDb(row) {
     notifications: { remindersNotified: row.reminders_notified || {} },
     northStar: {
       identity: row.north_star?.identity || '',
-      goals: {
-        community: '', leadership: '', impact: '', skills: '', curiosity: '', character: '',
-        ...row.north_star?.goals,
-      },
+      goals: { ...row.north_star?.goals },
+      characteristics: row.north_star?.characteristics || [],
+      directions: row.north_star?.directions || [],
     },
     testPrep: { targets: row.test_targets || {} },
   }

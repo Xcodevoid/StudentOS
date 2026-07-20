@@ -45,7 +45,9 @@ export function defaultData() {
     notifications: { remindersNotified: {} },
     northStar: {
       identity: '',
-      goals: { community: '', leadership: '', impact: '', skills: '', curiosity: '', character: '' },
+      goals: {},
+      characteristics: [],
+      directions: [],
     },
   }
 }
@@ -70,7 +72,9 @@ export function loadData() {
       northStar: {
         ...base.northStar,
         ...parsed.northStar,
-        goals: { ...base.northStar.goals, ...parsed.northStar?.goals },
+        goals: { ...parsed.northStar?.goals },
+        characteristics: parsed.northStar?.characteristics || [],
+        directions: parsed.northStar?.directions || [],
       },
     }
   } catch {

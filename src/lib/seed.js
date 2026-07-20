@@ -30,6 +30,12 @@ export function seedDemoData() {
         curiosity: 'Publish the bioinformatics research',
         character: 'Keep a 30-day streak without missing a day',
       },
+      characteristics: ['skills', 'leadership', 'community', 'curiosity', 'analytical'],
+      directions: [
+        { id: 'engineering-cs', label: 'Engineering & Computer Science' },
+        { id: 'sciences', label: 'Natural Sciences & Research' },
+        { id: 'education', label: 'Education & Community Work' },
+      ],
     },
     classes: [
       { id: uid(), name: 'AP Calculus BC', subject: 'Math', term: 'Fall 2026', credits: 1, weight: 'ap', grade: 96 },

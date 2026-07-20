@@ -3,9 +3,9 @@
 // Impact / Growth. Purely a deterministic reorganization of data the student
 // already entered — nothing here is generated or guessed.
 import { formatDate } from './dates'
-import { DIMENSIONS } from './northStar'
+import { CHARACTERISTICS } from './northStar'
 
-const DIM_LABEL = Object.fromEntries(DIMENSIONS.map((d) => [d.id, d.label]))
+const DIM_LABEL = Object.fromEntries(CHARACTERISTICS.map((d) => [d.id, d.label]))
 
 function hasFraming(entry) {
   return Boolean((entry.problem || '').trim() || (entry.action || '').trim() || (entry.impactWho || '').trim() || (entry.growth || '').trim())

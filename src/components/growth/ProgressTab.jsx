@@ -2,11 +2,25 @@ import { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus, Sparkles, Target } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { Card } from '../ui/Card'
+import { EmptyState } from '../ui/Misc'
 import { computeGrowthSummary } from '../../lib/northStar'
 
 export function ProgressTab() {
   const { data } = useStore()
-  const { deltas, mostDeveloped, growthOpportunity } = useMemo(() => computeGrowthSummary(data), [data])
+  const chosenIds = useMemo(() => data.northStar.characteristics || [], [data.northStar.characteristics])
+  const { deltas, mostDeveloped, growthOpportunity } = useMemo(() => computeGrowthSummary(data, chosenIds), [data, chosenIds])
+
+  if (chosenIds.length === 0) {
+    return (
+      <Card className="p-5">
+        <EmptyState
+          icon={Sparkles}
+          title="Nothing to track yet"
+          description="Pick your characteristics on the Identity tab first — then this fills in with how they're growing."
+        />
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -21,7 +35,7 @@ export function ProgressTab() {
               <>
                 <p className="text-[17px] font-semibold text-neutral-900 dark:text-white mt-0.5">{mostDeveloped.label}</p>
                 <p className="text-[13px] text-green-600 dark:text-green-400 mt-0.5">
-                  +{mostDeveloped.delta} point{mostDeveloped.delta === 1 ? '' : 's'} this month
+                  +{mostDeveloped.delta} piece{mostDeveloped.delta === 1 ? '' : 's'} of evidence this month
                 </p>
               </>
             ) : (
@@ -40,18 +54,20 @@ export function ProgressTab() {
               <>
                 <p className="text-[17px] font-semibold text-neutral-900 dark:text-white mt-0.5">{growthOpportunity.label}</p>
                 <p className="text-[13px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                  {growthOpportunity.hasNow ? `${growthOpportunity.score}/100 — the room to grow is here` : "Not started yet — that's the opening"}
+                  {growthOpportunity.evidenceCount > 0
+                    ? `${growthOpportunity.evidenceCount} piece${growthOpportunity.evidenceCount === 1 ? '' : 's'} so far — the room to grow is here`
+                    : "Not started yet — that's the opening"}
                 </p>
               </>
             ) : (
-              <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-0.5">Every dimension has evidence — nice work.</p>
+              <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-0.5">Every characteristic has evidence — nice work.</p>
             )}
           </div>
         </Card>
       </div>
 
       <div>
-        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-neutral-400 mb-3">This month, by dimension</h2>
+        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-neutral-400 mb-3">This month, by characteristic</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {deltas.map((d) => (
             <DeltaTile key={d.id} dimension={d} />
@@ -60,7 +76,7 @@ export function ProgressTab() {
       </div>
 
       <p className="text-[12px] text-neutral-400 max-w-2xl">
-        This compares your North Star score today against a reconstruction of it 30 days ago from the same dated evidence — it's a
+        This compares your evidence today against a reconstruction of it 30 days ago from the same dated evidence — it's a
         trend line, not a precise audit. Retagging an old project or activity today will also reshape how the past looks.
       </p>
     </div>
@@ -81,11 +97,11 @@ function DeltaTile({ dimension }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[13.5px] font-medium text-neutral-800 dark:text-neutral-100">{dimension.label}</p>
-        <p className="text-[12px] text-neutral-400">{dimension.hasNow ? `${dimension.score}/100 now` : 'Not started'}</p>
+        <p className="text-[12px] text-neutral-400">{dimension.evidenceCount} piece{dimension.evidenceCount === 1 ? '' : 's'} now</p>
       </div>
       <div className={`flex items-center gap-1 text-[14px] font-semibold flex-shrink-0 ${trendColor}`}>
         <TrendIcon size={14} />
-        {dimension.hasNow ? `${positive ? '+' : ''}${dimension.delta}` : '—'}
+        {positive ? '+' : ''}{dimension.delta}
       </div>
     </Card>
   )

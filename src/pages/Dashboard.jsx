@@ -13,7 +13,7 @@ import { seedDemoData } from '../lib/seed'
 import { computeStreak } from '../lib/streak'
 import { EXAM_TYPES } from '../lib/examTypes'
 import { CATEGORY_TYPES } from '../lib/opportunities'
-import { computeNorthStar, computeGrowthSummary, tierTone } from '../lib/northStar'
+import { computeNorthStar, computeGrowthSummary } from '../lib/northStar'
 import DailyBadges from '../components/home/DailyBadges'
 import TodayMission from '../components/home/TodayMission'
 import HabitsWidget from '../components/home/HabitsWidget'
@@ -31,7 +31,9 @@ export default function Dashboard() {
   const streak = useMemo(() => computeStreak(data.streak.datesActive), [data.streak.datesActive])
 
   const northStar = useMemo(() => computeNorthStar(data), [data])
-  const growthSummary = useMemo(() => computeGrowthSummary(data), [data])
+  const chosenIds = useMemo(() => data.northStar.characteristics || [], [data.northStar.characteristics])
+  const chosenDims = useMemo(() => northStar.dimensions.filter((d) => chosenIds.includes(d.id)), [northStar.dimensions, chosenIds])
+  const growthSummary = useMemo(() => computeGrowthSummary(data, chosenIds), [data, chosenIds])
 
   const minutesStudiedThisWeek = useMemo(() => {
     const weekKey = isoWeekKey()
@@ -154,7 +156,13 @@ export default function Dashboard() {
         <div className="space-y-4">
           <Link to="/growth-journey" className="block">
             <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
-              <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={64} showLabels={false} />
+              {chosenDims.length > 0 ? (
+                <RadarChart dimensions={chosenDims} tone="accent" size={64} showLabels={false} />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-accent-500/10 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={24} className="text-accent-500" strokeWidth={1.75} />
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">Your North Star</p>
                 {data.northStar.identity ? (
@@ -163,7 +171,9 @@ export default function Dashboard() {
                   <p className="text-[13px] text-neutral-500 dark:text-neutral-400 truncate">Set a Future Identity to anchor this</p>
                 )}
                 <p className="text-[12px] text-neutral-400 mt-0.5">
-                  {northStar.overallScore !== null ? `${northStar.overallTier} · ${northStar.overallScore}/100` : 'Tag a project or activity to start your growth map'}
+                  {chosenDims.length > 0
+                    ? `${chosenDims.length} characteristic${chosenDims.length === 1 ? '' : 's'} · ${chosenDims.reduce((sum, d) => sum + d.evidenceCount, 0)} pieces of evidence`
+                    : 'Take the Discovery Quiz to find your characteristics'}
                 </p>
               </div>
               <Button variant="secondary" size="sm" className="flex-shrink-0">Open</Button>
@@ -183,7 +193,7 @@ export default function Dashboard() {
                   {growthSummary.mostDeveloped ? (
                     <p className="text-[13.5px] text-neutral-600 dark:text-neutral-300 leading-relaxed">
                       <span className="font-medium text-green-600 dark:text-green-400">{growthSummary.mostDeveloped.label}</span> is up +
-                      {growthSummary.mostDeveloped.delta} this month.
+                      {growthSummary.mostDeveloped.delta} piece{growthSummary.mostDeveloped.delta === 1 ? '' : 's'} of evidence this month.
                     </p>
                   ) : (
                     <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400">Keep building — nothing to compare yet this month.</p>
