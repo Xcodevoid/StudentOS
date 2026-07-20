@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Plus, Trash2, ChevronDown, GraduationCap, ListTodo, Timer, Pause, Play, Square } from 'lucide-react'
-import { useStore } from '../context/StoreContext'
-import { useTimer } from '../context/TimerContext'
-import { Card, CardHeader } from '../components/ui/Card'
-import { Button, IconButton } from '../components/ui/Button'
-import { Field, Input, Select, Checkbox } from '../components/ui/Form'
-import { Modal } from '../components/ui/Modal'
-import { Badge, EmptyState, ProgressBar } from '../components/ui/Misc'
-import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../lib/dates'
-import { EXAM_TYPES, EXAM_TYPE_OPTIONS, SUBJECTS_BY_TYPE } from '../lib/examTypes'
+import { useStore } from '../../context/StoreContext'
+import { useTimer } from '../../context/TimerContext'
+import { Card, CardHeader } from '../ui/Card'
+import { Button, IconButton } from '../ui/Button'
+import { Field, Input, Select, Checkbox } from '../ui/Form'
+import { Modal } from '../ui/Modal'
+import { Badge, EmptyState, ProgressBar } from '../ui/Misc'
+import { countdownLabel, formatDate, isOverdue, sortByDateAsc } from '../../lib/dates'
+import { EXAM_TYPES, EXAM_TYPE_OPTIONS, SUBJECTS_BY_TYPE } from '../../lib/examTypes'
 
 const DURATIONS = [15, 25, 45, 60]
 
@@ -81,10 +81,9 @@ function FocusTimerCard({ exams }) {
 }
 
 const emptyExam = { name: '', date: '', examType: 'ap' }
-
 const FILTER_OPTIONS = [{ value: 'all', label: 'All' }, ...EXAM_TYPE_OPTIONS]
 
-export default function Exams() {
+export function ExamsTab() {
   const { data, addItem, updateItem, removeItem, recordActivityToday } = useStore()
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState(emptyExam)
@@ -122,8 +121,9 @@ export default function Exams() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">Exam Planner</h1>
-          <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1">Countdowns, study schedules, and topic checklists — for AP, IB, A-Level, and beyond.</p>
+          <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400">
+            Countdowns, study schedules, and topic checklists — for AP, IB, A-Level, and beyond.
+          </p>
         </div>
         <Button size="sm" icon={Plus} onClick={openAdd} className="flex-shrink-0">
           Add Exam

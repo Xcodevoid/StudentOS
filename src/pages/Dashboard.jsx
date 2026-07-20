@@ -151,7 +151,7 @@ export default function Dashboard() {
       </div>
 
       {/* North Star */}
-      <Link to="/north-star" className="block">
+      <Link to="/growth-journey" className="block">
         <Card hover className="p-5 flex items-center gap-4 sm:gap-5">
           <RadarChart dimensions={northStar.dimensions} tone={tierTone(northStar.overallScore)} size={64} showLabels={false} />
           <div className="min-w-0 flex-1">
@@ -197,7 +197,7 @@ export default function Dashboard() {
 
       {/* Growth Progress + Upcoming Opportunities */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Link to="/growth" className="block h-full">
+        <Link to="/growth-journey?tab=progress" className="block h-full">
           <Card hover className="p-5 h-full">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-accent-500/10 flex items-center justify-center flex-shrink-0">
@@ -218,7 +218,7 @@ export default function Dashboard() {
           </Card>
         </Link>
 
-        <Link to="/college-prep" className="block h-full">
+        <Link to="/college-path" className="block h-full">
           <Card hover className="p-5 h-full">
             <CardHeader title="Upcoming Opportunities" subtitle="Competitions, research, scholarships & more" />
             <div className="mt-3 space-y-2">
@@ -336,7 +336,7 @@ export default function Dashboard() {
             title="Recent Achievements"
             subtitle="Evidence you've collected"
             action={
-              <Link to="/evidence" className="text-[12.5px] text-accent-600 dark:text-accent-400 hover:underline">
+              <Link to="/portfolio?tab=evidence" className="text-[12.5px] text-accent-600 dark:text-accent-400 hover:underline">
                 View all
               </Link>
             }

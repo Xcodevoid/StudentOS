@@ -2,19 +2,19 @@ import { useMemo, useState } from 'react'
 import {
   Plus, Pencil, Trash2, Award, Image as ImageIcon, Link as LinkIcon, FileText, Trophy, Presentation, Camera, ExternalLink, FolderOpen,
 } from 'lucide-react'
-import { useStore } from '../context/StoreContext'
-import { useAuth } from '../context/AuthContext'
-import { useToast } from '../context/ToastContext'
-import { Card, CardHeader } from '../components/ui/Card'
-import { Button, IconButton } from '../components/ui/Button'
-import { Field, Input, Select, Textarea } from '../components/ui/Form'
-import { Modal } from '../components/ui/Modal'
-import { Badge, EmptyState } from '../components/ui/Misc'
-import { DimensionTagPicker } from '../components/northstar/DimensionTagPicker'
-import { DIMENSIONS } from '../lib/northStar'
-import { formatDate } from '../lib/dates'
-import { todayKey } from '../lib/momentum'
-import { uploadEvidenceFile, getEvidenceSignedUrl, deleteEvidenceFile } from '../lib/evidenceStorage'
+import { useStore } from '../../context/StoreContext'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../context/ToastContext'
+import { Card, CardHeader } from '../ui/Card'
+import { Button, IconButton } from '../ui/Button'
+import { Field, Input, Select, Textarea } from '../ui/Form'
+import { Modal } from '../ui/Modal'
+import { Badge, EmptyState } from '../ui/Misc'
+import { DimensionTagPicker } from '../northstar/DimensionTagPicker'
+import { DIMENSIONS } from '../../lib/northStar'
+import { formatDate } from '../../lib/dates'
+import { todayKey } from '../../lib/momentum'
+import { uploadEvidenceFile, getEvidenceSignedUrl, deleteEvidenceFile } from '../../lib/evidenceStorage'
 
 const EVIDENCE_TYPES = {
   certificate: { label: 'Certificate', icon: Award, needsFile: true },
@@ -40,7 +40,7 @@ const emptyEvidence = {
   notes: '',
 }
 
-export default function EvidenceVault() {
+export function EvidenceTab() {
   const { data, addItem, updateItem, removeItem, mode } = useStore()
   const { user } = useAuth()
   const { push } = useToast()
@@ -111,13 +111,6 @@ export default function EvidenceVault() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">Evidence Vault</h1>
-        <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl">
-          Proof of growth, saved before you forget it — certificates, screenshots, links, research notes, awards, presentations, photos.
-        </p>
-      </div>
-
       <Card className="p-5">
         <CardHeader
           title="Your Evidence"

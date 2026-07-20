@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, GraduationCap, CalendarClock, Sparkles, Compass, CalendarDays, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap, Star, LineChart, FolderOpen, BookOpen } from 'lucide-react'
+import { LayoutDashboard, GraduationCap, Sparkles, Compass, Settings, GalleryVerticalEnd, Cloud, CloudOff, Zap, Star } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
@@ -8,17 +8,12 @@ import FloatingTimer from './FloatingTimer'
 import MigrationPrompt from './MigrationPrompt'
 
 const NAV = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/north-star', label: 'North Star', mobileLabel: 'Star', icon: Star },
-  { to: '/growth', label: 'Growth Analytics', mobileLabel: 'Growth', icon: LineChart },
+  { to: '/', label: 'Home', icon: LayoutDashboard, end: true },
+  { to: '/growth-journey', label: 'Growth Journey', mobileLabel: 'Growth', icon: Star },
   { to: '/momentum', label: 'Momentum', mobileLabel: 'Boost', icon: Zap },
   { to: '/academics', label: 'Academics', icon: GraduationCap },
-  { to: '/exams', label: 'Exams', icon: CalendarClock },
-  { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/portfolio', label: 'Portfolio', icon: Sparkles },
-  { to: '/evidence', label: 'Evidence Vault', mobileLabel: 'Evidence', icon: FolderOpen },
-  { to: '/story', label: 'Your Story', mobileLabel: 'Story', icon: BookOpen },
-  { to: '/college-prep', label: 'College Prep', mobileLabel: 'Prep', icon: Compass },
+  { to: '/college-path', label: 'College Path', mobileLabel: 'Path', icon: Compass },
 ]
 
 export default function Layout() {

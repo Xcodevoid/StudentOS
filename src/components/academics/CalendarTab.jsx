@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react'
-import { useStore } from '../context/StoreContext'
-import { Card } from '../components/ui/Card'
-import { Button } from '../components/ui/Button'
-import { Checkbox } from '../components/ui/Form'
-import { Badge, EmptyState } from '../components/ui/Misc'
-import { buildMonthGrid, dateKey, WEEKDAY_LABELS } from '../lib/calendarGrid'
-import { formatDate } from '../lib/dates'
+import { useStore } from '../../context/StoreContext'
+import { Card } from '../ui/Card'
+import { Button } from '../ui/Button'
+import { Checkbox } from '../ui/Form'
+import { Badge, EmptyState } from '../ui/Misc'
+import { buildMonthGrid, dateKey, WEEKDAY_LABELS } from '../../lib/calendarGrid'
+import { formatDate } from '../../lib/dates'
 
 const KIND_STYLE = {
   assignment: { dot: 'bg-accent-500', tone: 'accent', label: 'Assignment' },
@@ -14,7 +14,7 @@ const KIND_STYLE = {
   deadline: { dot: 'bg-amber-500', tone: 'amber', label: 'Deadline' },
 }
 
-export default function CalendarPage() {
+export function CalendarTab() {
   const { data, updateItem } = useStore()
   const today = new Date()
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -48,19 +48,13 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">Calendar</h1>
-          <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1">Assignments, exams, and deadlines in one view.</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {Object.values(KIND_STYLE).map((s) => (
-            <span key={s.label} className="flex items-center gap-1.5 text-[12px] text-neutral-500">
-              <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-              {s.label}
-            </span>
-          ))}
-        </div>
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        {Object.values(KIND_STYLE).map((s) => (
+          <span key={s.label} className="flex items-center gap-1.5 text-[12px] text-neutral-500">
+            <span className={`w-2 h-2 rounded-full ${s.dot}`} />
+            {s.label}
+          </span>
+        ))}
       </div>
 
       <Card className="p-4 sm:p-5">

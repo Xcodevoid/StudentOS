@@ -1,25 +1,18 @@
 import { useMemo } from 'react'
-import { useStore } from '../context/StoreContext'
-import { Card, CardHeader } from '../components/ui/Card'
-import { Textarea } from '../components/ui/Form'
-import { RadarChart } from '../components/northstar/RadarChart'
-import { DimensionCard } from '../components/northstar/DimensionCard'
-import { computeNorthStar, tierTone } from '../lib/northStar'
+import { useStore } from '../../context/StoreContext'
+import { Card, CardHeader } from '../ui/Card'
+import { Textarea } from '../ui/Form'
+import { RadarChart } from '../northstar/RadarChart'
+import { DimensionCard } from '../northstar/DimensionCard'
+import { computeNorthStar, tierTone } from '../../lib/northStar'
 
-export default function NorthStar() {
+export function IdentityTab() {
   const { data, setNorthStar } = useStore()
   const northStar = useMemo(() => computeNorthStar(data), [data])
   const overallTone = tierTone(northStar.overallScore)
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">North Star</h1>
-        <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl">
-          Grades measure a semester. This measures who you're becoming — every small action today builds your future identity.
-        </p>
-      </div>
-
       <Card className="p-5">
         <CardHeader title="Future Identity" subtitle="In one or two sentences, who do you want to become?" />
         <Textarea
@@ -45,10 +38,10 @@ export default function NorthStar() {
           </div>
           <p className="text-[15px] font-semibold text-neutral-900 dark:text-white">How this grows</p>
           <p className="text-[13.5px] text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
-            Every dimension is built from real evidence, not points you can farm. Tag a Portfolio project or a College Prep
-            activity with the parts of you it grows, and that dimension lights up. Discipline and follow-through — tracked
-            in Momentum — feed Character. Nothing here is graded; it's just a map of where you've actually put in the work,
-            and where there's still room to build.
+            Every dimension is built from real evidence, not points you can farm. Tag a Portfolio project or activity with
+            the parts of you it grows, and that dimension lights up. Discipline and follow-through — tracked in Momentum —
+            feed Character. Nothing here is graded; it's just a map of where you've actually put in the work, and where
+            there's still room to build.
           </p>
         </div>
       </Card>

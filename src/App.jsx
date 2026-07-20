@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { StoreProvider } from './context/StoreContext'
 import { ToastProvider } from './context/ToastContext'
@@ -8,15 +8,10 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Academics from './pages/Academics'
-import Exams from './pages/Exams'
 import Portfolio from './pages/Portfolio'
-import EvidenceVault from './pages/EvidenceVault'
-import StoryBuilder from './pages/StoryBuilder'
-import CollegePrep from './pages/CollegePrep'
-import CalendarPage from './pages/Calendar'
+import CollegePath from './pages/CollegePath'
 import Momentum from './pages/Momentum'
-import NorthStar from './pages/NorthStar'
-import GrowthAnalytics from './pages/GrowthAnalytics'
+import GrowthJourney from './pages/GrowthJourney'
 import SettingsPage from './pages/Settings'
 import PublicPortfolio from './pages/PublicPortfolio'
 
@@ -38,17 +33,22 @@ function App() {
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
-                  <Route path="/north-star" element={<NorthStar />} />
-                  <Route path="/growth" element={<GrowthAnalytics />} />
+                  <Route path="/growth-journey" element={<GrowthJourney />} />
                   <Route path="/momentum" element={<Momentum />} />
                   <Route path="/academics" element={<Academics />} />
-                  <Route path="/exams" element={<Exams />} />
                   <Route path="/portfolio" element={<Portfolio />} />
-                  <Route path="/evidence" element={<EvidenceVault />} />
-                  <Route path="/story" element={<StoryBuilder />} />
-                  <Route path="/college-prep" element={<CollegePrep />} />
-                  <Route path="/calendar" element={<CalendarPage />} />
+                  <Route path="/college-path" element={<CollegePath />} />
                   <Route path="/settings" element={<SettingsPage />} />
+
+                  {/* Redirects from the pre-reorganization sidebar, so old
+                      bookmarks and muscle memory still land somewhere real. */}
+                  <Route path="/north-star" element={<Navigate to="/growth-journey?tab=identity" replace />} />
+                  <Route path="/growth" element={<Navigate to="/growth-journey?tab=progress" replace />} />
+                  <Route path="/story" element={<Navigate to="/growth-journey?tab=story" replace />} />
+                  <Route path="/evidence" element={<Navigate to="/portfolio?tab=evidence" replace />} />
+                  <Route path="/exams" element={<Navigate to="/academics?tab=exams" replace />} />
+                  <Route path="/calendar" element={<Navigate to="/academics?tab=calendar" replace />} />
+                  <Route path="/college-prep" element={<Navigate to="/college-path" replace />} />
                 </Route>
               </Routes>
             </HashRouter>

@@ -7,11 +7,11 @@ import { tierTone } from '../../lib/northStar'
 import { formatDate } from '../../lib/dates'
 
 const EVIDENCE_LINKS = {
-  community: [{ to: '/college-prep', label: 'Log an activity' }, { to: '/portfolio', label: 'Log a project' }],
-  leadership: [{ to: '/college-prep', label: 'Log an activity' }, { to: '/portfolio', label: 'Log a project' }],
-  impact: [{ to: '/portfolio', label: 'Log a project' }],
-  skills: [{ to: '/portfolio', label: 'Log a project' }],
-  curiosity: [{ to: '/portfolio', label: 'Log a project' }],
+  community: [{ to: '/portfolio?tab=activities', label: 'Log an activity' }, { to: '/portfolio?tab=projects', label: 'Log a project' }],
+  leadership: [{ to: '/portfolio?tab=activities', label: 'Log an activity' }, { to: '/portfolio?tab=projects', label: 'Log a project' }],
+  impact: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
+  skills: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
+  curiosity: [{ to: '/portfolio?tab=projects', label: 'Log a project' }],
   character: [{ to: '/momentum', label: 'Open Momentum' }],
 }
 

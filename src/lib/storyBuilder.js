@@ -1,7 +1,7 @@
-// Organizes Portfolio projects and College Prep activities that have Impact
-// Tracker framing into a chronological narrative: Beginning / Challenge /
-// Action / Impact / Growth. Purely a deterministic reorganization of data
-// the student already entered — nothing here is generated or guessed.
+// Organizes Portfolio projects and activities that have Impact Tracker
+// framing into a chronological narrative: Beginning / Challenge / Action /
+// Impact / Growth. Purely a deterministic reorganization of data the student
+// already entered — nothing here is generated or guessed.
 import { formatDate } from './dates'
 import { DIMENSIONS } from './northStar'
 
@@ -24,7 +24,7 @@ function normalize(data) {
   const fromProjects = (data.projects || []).map((p) => ({
     id: p.id,
     kind: 'project',
-    source: 'Portfolio',
+    source: 'Project',
     title: p.title || 'Untitled project',
     date: p.date || '',
     org: '',
@@ -38,7 +38,7 @@ function normalize(data) {
   const fromActivities = (data.activities || []).map((a) => ({
     id: a.id,
     kind: 'activity',
-    source: 'College Prep',
+    source: 'Activity',
     title: a.title || 'Untitled activity',
     date: a.startDate || '',
     org: a.org || '',

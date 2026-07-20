@@ -8,15 +8,15 @@ export function getReminderItems(data) {
 
   data.assignments
     .filter((a) => a.status !== 'done' && a.dueDate)
-    .forEach((a) => items.push({ id: a.id, kind: 'assignment', title: a.title, date: a.dueDate, path: '/academics' }))
+    .forEach((a) => items.push({ id: a.id, kind: 'assignment', title: a.title, date: a.dueDate, path: '/academics?tab=assignments' }))
 
   data.exams
     .filter((e) => e.date)
-    .forEach((e) => items.push({ id: e.id, kind: 'exam', title: e.name, date: e.date, path: '/exams' }))
+    .forEach((e) => items.push({ id: e.id, kind: 'exam', title: e.name, date: e.date, path: '/academics?tab=exams' }))
 
   data.opportunities
     .filter((d) => d.status !== 'submitted' && d.date)
-    .forEach((d) => items.push({ id: d.id, kind: 'deadline', title: d.title, date: d.date, path: '/college-prep' }))
+    .forEach((d) => items.push({ id: d.id, kind: 'deadline', title: d.title, date: d.date, path: '/college-path?tab=opportunities' }))
 
   return items.sort((a, b) => new Date(a.date) - new Date(b.date))
 }

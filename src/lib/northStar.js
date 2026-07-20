@@ -121,7 +121,7 @@ export function computeNorthStar(data, asOf = new Date()) {
         title: a.title || 'Untitled activity',
         date: a.startDate || '',
         weight: 18 + sustained,
-        source: 'College Prep',
+        source: 'Portfolio',
       })
     )
   })

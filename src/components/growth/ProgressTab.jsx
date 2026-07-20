@@ -1,23 +1,15 @@
 import { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus, Sparkles, Target } from 'lucide-react'
-import { useStore } from '../context/StoreContext'
-import { Card } from '../components/ui/Card'
-import { computeGrowthSummary } from '../lib/northStar'
+import { useStore } from '../../context/StoreContext'
+import { Card } from '../ui/Card'
+import { computeGrowthSummary } from '../../lib/northStar'
 
-export default function GrowthAnalytics() {
+export function ProgressTab() {
   const { data } = useStore()
-
   const { deltas, mostDeveloped, growthOpportunity } = useMemo(() => computeGrowthSummary(data), [data])
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[24px] sm:text-[26px] font-semibold tracking-tight text-neutral-900 dark:text-white">Growth Analytics</h1>
-        <p className="text-[14px] text-neutral-500 dark:text-neutral-400 mt-1 max-w-2xl">
-          Not hours logged — how your North Star has actually shifted over the last 30 days.
-        </p>
-      </div>
-
       <div className="grid sm:grid-cols-2 gap-4">
         <Card className="p-5 flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent-500/10 flex items-center justify-center flex-shrink-0">
