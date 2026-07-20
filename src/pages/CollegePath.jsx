@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
@@ -39,8 +40,18 @@ const emptyOpportunity = {
   checklist: [],
 }
 
+const TABS = [
+  { id: 'timeline', label: 'Timeline', icon: Compass },
+  { id: 'opportunities', label: 'Opportunities', icon: Flag },
+  { id: 'export', label: 'Common App Export', icon: FileText },
+  { id: 'bragsheet', label: 'Brag Sheet', icon: FileHeart },
+  { id: 'testprep', label: 'Test Prep', icon: Gauge },
+]
+
 export default function CollegePath() {
-  const [tab, setTab] = useState('timeline')
+  const [searchParams] = useSearchParams()
+  const requested = searchParams.get('tab')
+  const [tab, setTab] = useState(TABS.some((t) => t.id === requested) ? requested : 'timeline')
 
   return (
     <div className="space-y-6">
@@ -52,13 +63,7 @@ export default function CollegePath() {
       </div>
 
       <div className="inline-flex p-1 rounded-full bg-black/[0.05] dark:bg-white/10 print:hidden">
-        {[
-          { id: 'timeline', label: 'Timeline', icon: Compass },
-          { id: 'opportunities', label: 'Opportunities', icon: Flag },
-          { id: 'export', label: 'Common App Export', icon: FileText },
-          { id: 'bragsheet', label: 'Brag Sheet', icon: FileHeart },
-          { id: 'testprep', label: 'Test Prep', icon: Gauge },
-        ].map((t) => (
+        {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}

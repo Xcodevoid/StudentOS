@@ -16,6 +16,7 @@ import { CATEGORY_TYPES } from '../lib/opportunities'
 import { computeNorthStar, computeGrowthSummary } from '../lib/northStar'
 import DailyBadges from '../components/home/DailyBadges'
 import TodayMission from '../components/home/TodayMission'
+import FocusEngine from '../components/home/FocusEngine'
 import HabitsWidget from '../components/home/HabitsWidget'
 import FocusWidget from '../components/home/FocusWidget'
 import DistractionCheckIn from '../components/home/DistractionCheckIn'
@@ -232,6 +233,7 @@ export default function Dashboard() {
       <div>
         <SectionTitle>Today</SectionTitle>
         <div className="space-y-4">
+          <FocusEngine />
           <TodayMission />
 
           <div className="grid lg:grid-cols-2 gap-4">
