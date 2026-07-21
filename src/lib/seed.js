@@ -133,6 +133,7 @@ export function seedDemoData() {
         title: 'Tutoring for Underserved Students',
         category: 'volunteering',
         org: 'City Learning Center',
+        scope: 'state-regional',
         hoursPerWeek: 3,
         weeksPerYear: 40,
         startDate: d(-300),
@@ -272,6 +273,26 @@ export function seedDemoData() {
       { id: uid(), date: d(-2), accomplished: 'Robotics practice went well — the new arm design finally works.', blocked: 'Nothing major today.', improve: 'Keep this pace up.' },
     ],
     streak: { datesActive: [0, -1, -2, -3, -4].map((offset) => d(offset)) },
+    awards: [
+      {
+        id: uid(),
+        title: 'Regional Science Fair — 1st Place, Computer Science',
+        level: 'state-regional',
+        category: 'STEM',
+        issuer: 'State Science Foundation',
+        date: d(-200),
+        description: 'Awarded for a computer vision project detecting early signs of plant disease.',
+      },
+      {
+        id: uid(),
+        title: 'Principal\'s Honor Roll',
+        level: 'school',
+        category: 'Academic',
+        issuer: 'Lincoln High School',
+        date: d(-90),
+        description: '',
+      },
+    ],
     recommenders: [
       {
         id: uid(),

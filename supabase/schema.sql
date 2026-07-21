@@ -145,6 +145,7 @@ create table if not exists activities (
   action_taken text not null default '',
   impact_who text not null default '',
   growth_reflection text not null default '',
+  scope text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -156,6 +157,7 @@ alter table activities add column if not exists problem text not null default ''
 alter table activities add column if not exists action_taken text not null default '';
 alter table activities add column if not exists impact_who text not null default '';
 alter table activities add column if not exists growth_reflection text not null default '';
+alter table activities add column if not exists scope text not null default '';
 
 -- "Opportunities" at the app level (competitions, research programs,
 -- internships, scholarships, summer programs, and college applications).
@@ -368,12 +370,28 @@ create table if not exists interview_practice (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Honors & Awards ----------
+-- Mirrors the Common App Honors section: Title, Level of Recognition
+-- (School/State-Regional/National/International — see src/lib/awards.js),
+-- an optional issuing organization/category, and a short description.
+create table if not exists awards (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default '',
+  level text not null default 'school',
+  category text not null default '',
+  issuer text not null default '',
+  date date,
+  description text not null default '',
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries','essays','interview_practice']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries','essays','interview_practice','awards']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -467,3 +485,4 @@ create index if not exists idx_recommenders_user on recommenders(user_id);
 create index if not exists idx_test_entries_user on test_entries(user_id);
 create index if not exists idx_essays_user on essays(user_id);
 create index if not exists idx_interview_practice_user on interview_practice(user_id);
+create index if not exists idx_awards_user on awards(user_id);

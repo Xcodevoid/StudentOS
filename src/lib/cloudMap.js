@@ -25,6 +25,7 @@ export const TABLES = {
   testEntries: 'test_entries',
   essays: 'essays',
   interviewPractice: 'interview_practice',
+  awards: 'awards',
 }
 
 // entity -> { appKey: dbColumn }
@@ -83,6 +84,7 @@ const NULLABLE_FIELDS = {
   testEntries: ['date', 'registrationDeadline'],
   essays: ['wordLimit', 'linkedEntryId'],
   interviewPractice: ['selfRating'],
+  awards: ['date'],
 }
 
 // Nullable fields where null has a distinct tri-state meaning from '' (right

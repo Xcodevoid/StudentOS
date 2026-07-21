@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Plus, Pencil, Trash2, Users } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
+import { useToast } from '../../context/ToastContext'
 import { Card, CardHeader } from '../ui/Card'
 import { Button, IconButton } from '../ui/Button'
 import { Field, Input, Select, Textarea } from '../ui/Form'
 import { Modal } from '../ui/Modal'
-import { Badge, EmptyState } from '../ui/Misc'
+import { Badge, EmptyState, StatCard } from '../ui/Misc'
 import { formatDate, sortByDateAsc } from '../../lib/dates'
 import { DEFAULT_ACTIVITY_DIMENSIONS } from '../../lib/northStar'
 import { ACTIVITY_TYPES } from '../../lib/activityTypes'
+import { RECOGNITION_LEVELS } from '../../lib/awards'
 import { DimensionTagPicker } from '../northstar/DimensionTagPicker'
 import { PolishChecklist } from '../collegeprep/PolishChecklist'
 import { ImpactFraming } from '../collegeprep/ImpactFraming'
@@ -17,6 +19,7 @@ const emptyActivity = {
   title: '',
   category: 'activity',
   org: '',
+  scope: '',
   hoursPerWeek: '',
   weeksPerYear: '',
   startDate: '',
@@ -30,11 +33,18 @@ const emptyActivity = {
 }
 
 export function ActivitiesTab() {
-  const { data, addItem, updateItem, removeItem } = useStore()
+  const { data, addItem, updateItem, removeItem, recordActivityToday } = useStore()
+  const { push } = useToast()
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyActivity)
   const sorted = useMemo(() => sortByDateAsc(data.activities, 'startDate').reverse(), [data.activities])
+
+  const volunteering = useMemo(() => data.activities.filter((a) => a.category === 'volunteering'), [data.activities])
+  const totalVolunteerHours = useMemo(
+    () => Math.round(volunteering.reduce((sum, a) => sum + (Number(a.hoursPerWeek) || 0) * (Number(a.weeksPerYear) || 0), 0)),
+    [volunteering]
+  )
 
   function openAdd() {
     setForm(emptyActivity)
@@ -50,8 +60,15 @@ export function ActivitiesTab() {
     e.preventDefault()
     if (!form.title.trim()) return
     const payload = { ...form, hoursPerWeek: Number(form.hoursPerWeek) || 0, weeksPerYear: Number(form.weeksPerYear) || 0 }
-    if (editingId) updateItem('activities', editingId, payload)
-    else addItem('activities', payload)
+    if (editingId) {
+      updateItem('activities', editingId, payload)
+    } else {
+      addItem('activities', payload)
+      recordActivityToday()
+      if (payload.category === 'volunteering' && volunteering.length === 0) {
+        push('First volunteering role logged 🎉', { tone: 'success', description: 'Consistency here matters more than hours — keep it going.' })
+      }
+    }
     setModalOpen(false)
   }
 
@@ -62,6 +79,15 @@ export function ActivitiesTab() {
         subtitle="Extracurriculars, volunteering, and internships."
         action={<Button size="sm" icon={Plus} onClick={openAdd}>Add Activity</Button>}
       />
+
+      {volunteering.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <StatCard label="Volunteer Hours" value={totalVolunteerHours} sub="Estimated total" tone="accent" />
+          <StatCard label="Volunteering Roles" value={volunteering.length} />
+          <StatCard label="Total Activities" value={data.activities.length} />
+        </div>
+      )}
+
       <div className="mt-4">
         {sorted.length === 0 ? (
           <EmptyState icon={Users} title="No activities yet" description="Add an extracurricular, volunteering role, or internship." />
@@ -69,6 +95,7 @@ export function ActivitiesTab() {
           <div className="divide-y divide-black/5 dark:divide-white/10">
             {sorted.map((a) => {
               const T = ACTIVITY_TYPES[a.category] || ACTIVITY_TYPES.activity
+              const L = RECOGNITION_LEVELS[a.scope]
               return (
                 <div key={a.id} className="flex items-start gap-3 py-3.5 group">
                   <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -78,6 +105,7 @@ export function ActivitiesTab() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-[14px] font-medium text-neutral-900 dark:text-white">{a.title}</p>
                       <Badge tone={T.tone}>{T.label}</Badge>
+                      {L && <Badge tone={L.tone}>{L.label}</Badge>}
                     </div>
                     <p className="text-[12.5px] text-neutral-400 mt-0.5">
                       {[a.org, a.hoursPerWeek ? `${a.hoursPerWeek} hrs/wk` : null, formatRange(a.startDate, a.endDate)].filter(Boolean).join(' · ')}
@@ -123,6 +151,14 @@ export function ActivitiesTab() {
               <Input value={form.org} onChange={(e) => setForm((prev) => ({ ...prev, org: e.target.value }))} placeholder="e.g. Lincoln High School" />
             </Field>
           </div>
+          <Field label="Scope" hint="How far did this reach? Especially worth setting for volunteering.">
+            <Select value={form.scope} onChange={(e) => setForm((prev) => ({ ...prev, scope: e.target.value }))}>
+              <option value="">Not specified</option>
+              {Object.entries(RECOGNITION_LEVELS).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
+              ))}
+            </Select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Hours / week">
               <Input type="number" min="0" value={form.hoursPerWeek} onChange={(e) => setForm((prev) => ({ ...prev, hoursPerWeek: e.target.value }))} />

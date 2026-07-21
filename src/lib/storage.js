@@ -39,6 +39,7 @@ export function defaultData() {
     evidence: [],
     recommenders: [],
     testEntries: [],
+    awards: [],
     essays: [],
     interviewPractice: [],
     testPrep: { targets: {} },

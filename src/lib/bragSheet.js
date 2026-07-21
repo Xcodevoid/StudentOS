@@ -5,8 +5,9 @@
 import { formatDate } from './dates'
 import { computeGPA } from './gpa'
 import { WEIGHT_LABELS } from './gpa'
+import { RECOGNITION_LEVELS } from './awards'
 
-const AWARD_TYPES = ['award', 'certificate']
+const EVIDENCE_AWARD_TYPES = ['award', 'certificate']
 const HIGHLIGHT_LIMIT = 5
 const CLASS_LIMIT = 4
 const AWARD_LIMIT = 5
@@ -32,11 +33,16 @@ function notableClasses(classes) {
     .slice(0, CLASS_LIMIT)
 }
 
-function topAwards(evidence) {
-  const list = evidence || []
-  const tagged = list.filter((e) => AWARD_TYPES.includes(e.type))
-  const pool = tagged.length > 0 ? tagged : list
-  return [...pool].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, AWARD_LIMIT)
+// Prefers the structured Honors & Awards list (title/level/issuer) — falls
+// back to Evidence Vault items tagged award/certificate for students who
+// logged proof before the dedicated Awards tracker existed.
+function topAwards(data) {
+  const structured = data.awards || []
+  if (structured.length > 0) {
+    return [...structured].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, AWARD_LIMIT)
+  }
+  const evidenceAwards = (data.evidence || []).filter((e) => EVIDENCE_AWARD_TYPES.includes(e.type))
+  return [...evidenceAwards].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, AWARD_LIMIT)
 }
 
 export function buildBragSheet(data, { recommenderId = null } = {}) {
@@ -52,7 +58,7 @@ export function buildBragSheet(data, { recommenderId = null } = {}) {
     identity: data.northStar?.identity || '',
     classes: notableClasses(data.classes),
     highlights: topHighlights(data),
-    awards: topAwards(data.evidence),
+    awards: topAwards(data),
     applyingTo,
     recommender,
   }
@@ -103,7 +109,10 @@ export function formatBragSheetText(sheet) {
   if (sheet.awards.length > 0) {
     lines.push('')
     lines.push('AWARDS & RECOGNITION')
-    sheet.awards.forEach((a) => lines.push(`- ${a.title || 'Untitled'}${a.date ? ` (${formatDate(a.date)})` : ''}`))
+    sheet.awards.forEach((a) => {
+      const level = a.level ? RECOGNITION_LEVELS[a.level]?.label : null
+      lines.push(`- ${a.title || 'Untitled'}${level ? ` [${level}]` : ''}${a.date ? ` (${formatDate(a.date)})` : ''}`)
+    })
   }
 
   if (sheet.applyingTo.length > 0) {
