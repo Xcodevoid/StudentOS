@@ -23,6 +23,8 @@ export const TABLES = {
   evidence: 'evidence',
   recommenders: 'recommenders',
   testEntries: 'test_entries',
+  essays: 'essays',
+  interviewPractice: 'interview_practice',
 }
 
 // entity -> { appKey: dbColumn }
@@ -52,6 +54,8 @@ const FIELD_MAP = {
   habitLogs: { habitId: 'habit_id' },
   evidence: { linkedProjectId: 'linked_project_id', linkedActivityId: 'linked_activity_id', storagePath: 'storage_path' },
   testEntries: { testType: 'test_type', registrationDeadline: 'registration_deadline' },
+  essays: { promptId: 'prompt_id', customPrompt: 'custom_prompt', wordLimit: 'word_limit', linkedEntryId: 'linked_entry_id', linkedEntryKind: 'linked_entry_kind' },
+  interviewPractice: { questionId: 'question_id', questionText: 'question_text', selfRating: 'self_rating' },
 }
 
 // Fields that are numeric / date / uuid-FK columns, where an empty string
@@ -77,6 +81,8 @@ const NULLABLE_FIELDS = {
   evidence: ['date', 'linkedProjectId', 'linkedActivityId', 'storagePath'],
   recommenders: ['deadline'],
   testEntries: ['date', 'registrationDeadline'],
+  essays: ['wordLimit', 'linkedEntryId'],
+  interviewPractice: ['selfRating'],
 }
 
 // Nullable fields where null has a distinct tri-state meaning from '' (right

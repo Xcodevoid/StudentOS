@@ -337,12 +337,42 @@ create table if not exists test_entries (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Essay Help & Interview Prep ----------
+-- Both are matched against Story Builder chapters (projects/activities with
+-- Impact Tracker framing) at read time in src/lib/essayHelper.js and
+-- src/lib/interviewPrep.js — `linked_entry_id`/`linked_entry_kind` just point
+-- back at whichever project or activity row the student picked as the basis
+-- for a given essay. Nothing here is AI-generated or stored pre-computed.
+create table if not exists essays (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  prompt_id text not null default '',
+  custom_prompt text not null default '',
+  title text not null default '',
+  word_limit numeric,
+  linked_entry_id uuid,
+  linked_entry_kind text not null default '',
+  draft text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists interview_practice (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  question_id text not null default '',
+  question_text text not null default '',
+  answer text not null default '',
+  self_rating numeric,
+  date date,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries','essays','interview_practice']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -434,3 +464,5 @@ create index if not exists idx_evidence_project on evidence(linked_project_id);
 create index if not exists idx_evidence_activity on evidence(linked_activity_id);
 create index if not exists idx_recommenders_user on recommenders(user_id);
 create index if not exists idx_test_entries_user on test_entries(user_id);
+create index if not exists idx_essays_user on essays(user_id);
+create index if not exists idx_interview_practice_user on interview_practice(user_id);

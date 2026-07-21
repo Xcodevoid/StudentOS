@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge, Landmark } from 'lucide-react'
+import { Plus, Pencil, Trash2, Compass, Flag, GraduationCap, FileText, Copy, Printer, FileHeart, Gauge, Landmark, PenSquare, Mic } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useToast } from '../context/ToastContext'
 import { Card, CardHeader } from '../components/ui/Card'
@@ -17,6 +17,8 @@ import RecommendersCard from '../components/collegepath/RecommendersCard'
 import BragSheetView from '../components/collegepath/BragSheetView'
 import TestPrepView from '../components/collegepath/TestPrepView'
 import UniversitiesView from '../components/collegepath/UniversitiesView'
+import EssayHelperView from '../components/collegepath/EssayHelperView'
+import InterviewPrepView from '../components/collegepath/InterviewPrepView'
 import {
   COMMON_APP_CATEGORIES,
   DEFAULT_COMMON_APP_TYPE,
@@ -48,6 +50,8 @@ const TABS = [
   { id: 'export', label: 'Common App Export', icon: FileText },
   { id: 'bragsheet', label: 'Brag Sheet', icon: FileHeart },
   { id: 'testprep', label: 'Test Prep', icon: Gauge },
+  { id: 'essays', label: 'Essays', icon: PenSquare },
+  { id: 'interviews', label: 'Interviews', icon: Mic },
 ]
 
 export default function CollegePath() {
@@ -90,6 +94,8 @@ export default function CollegePath() {
         </div>
       )}
       {tab === 'testprep' && <TestPrepView />}
+      {tab === 'essays' && <EssayHelperView />}
+      {tab === 'interviews' && <InterviewPrepView />}
     </div>
   )
 }

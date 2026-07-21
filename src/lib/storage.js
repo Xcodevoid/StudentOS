@@ -39,6 +39,8 @@ export function defaultData() {
     evidence: [],
     recommenders: [],
     testEntries: [],
+    essays: [],
+    interviewPractice: [],
     testPrep: { targets: {} },
     streak: { datesActive: [] },
     badges: { seen: [] },
