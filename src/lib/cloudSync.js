@@ -22,12 +22,14 @@ export async function pullAllFromCloud(userId) {
   })
 
   if (profileRow) {
-    const { profile, streak, badges, notifications, northStar } = profileFromDb(profileRow)
+    const { profile, streak, badges, notifications, northStar, testPrep, majorFit } = profileFromDb(profileRow)
     assembled.profile = profile
     assembled.streak = streak
     assembled.badges = badges
     assembled.notifications = notifications
     assembled.northStar = northStar
+    assembled.testPrep = testPrep
+    assembled.majorFit = majorFit
   }
 
   return assembled
@@ -58,6 +60,8 @@ export async function pushAllToCloud(userId, data) {
       badgesSeen: data.badges?.seen || [],
       remindersNotified: data.notifications?.remindersNotified || {},
       northStar: data.northStar || {},
+      testTargets: data.testPrep?.targets || {},
+      majorFit: data.majorFit || {},
     },
     userId
   )

@@ -42,6 +42,7 @@ export function defaultData() {
     essays: [],
     interviewPractice: [],
     testPrep: { targets: {} },
+    majorFit: { stemPct: null, nonstemPct: null, lean: '', topMajors: [], completedAt: '' },
     streak: { datesActive: [] },
     badges: { seen: [] },
     notifications: { remindersNotified: {} },
@@ -71,6 +72,7 @@ export function loadData() {
       badges: { ...base.badges, ...parsed.badges },
       notifications: { ...base.notifications, ...parsed.notifications },
       testPrep: { ...base.testPrep, ...parsed.testPrep, targets: { ...base.testPrep.targets, ...parsed.testPrep?.targets } },
+      majorFit: { ...base.majorFit, ...parsed.majorFit },
       northStar: {
         ...base.northStar,
         ...parsed.northStar,

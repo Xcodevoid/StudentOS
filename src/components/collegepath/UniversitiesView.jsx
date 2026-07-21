@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react'
-import { ExternalLink, Plus, Landmark } from 'lucide-react'
+import { ExternalLink, Plus, Landmark, Compass, RotateCcw } from 'lucide-react'
 import { useStore } from '../../context/StoreContext'
 import { useToast } from '../../context/ToastContext'
 import { Card, CardHeader } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Form'
 import { Badge, EmptyState } from '../ui/Misc'
-import { REGIONS, UNIVERSITIES } from '../../lib/universities'
+import { REGIONS, UNIVERSITIES, recommendUniversities } from '../../lib/universities'
+import MajorFitQuiz, { MajorFitResultSummary } from './MajorFitQuiz'
 
 export default function UniversitiesView() {
-  const { addItem } = useStore()
+  const { data, addItem } = useStore()
   const { push } = useToast()
   const [query, setQuery] = useState('')
   const [region, setRegion] = useState('All')
@@ -28,6 +29,11 @@ export default function UniversitiesView() {
     })
   }, [query, region])
 
+  const recommended = useMemo(
+    () => (data.majorFit.completedAt ? recommendUniversities(data.majorFit.topMajors, 6) : []),
+    [data.majorFit]
+  )
+
   function addToOpportunities(u) {
     addItem('opportunities', {
       title: `${u.name} — Application`,
@@ -44,6 +50,45 @@ export default function UniversitiesView() {
 
   return (
     <div className="space-y-4">
+      <Card className="p-5">
+        {data.majorFit.completedAt ? (
+          <>
+            <CardHeader
+              title="Your Major Fit"
+              subtitle="Not sure this still feels right? Retake it any time — nothing here is permanent."
+              action={<MajorFitQuiz triggerLabel="Retake quiz" variant="ghost" size="sm" />}
+            />
+            <div className="mt-4">
+              <MajorFitResultSummary result={data.majorFit} />
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-accent-50 dark:bg-accent-500/15 flex items-center justify-center flex-shrink-0">
+              <Compass size={20} className="text-accent-600 dark:text-accent-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[14.5px] font-semibold text-neutral-900 dark:text-white">Not sure where to start?</p>
+              <p className="text-[13px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                A 2-minute diagnostic that sorts STEM vs. non-STEM affinity, points to specific majors worth exploring, and recommends schools strong in them.
+              </p>
+            </div>
+            <MajorFitQuiz />
+          </div>
+        )}
+      </Card>
+
+      {recommended.length > 0 && (
+        <Card className="p-5">
+          <CardHeader title="Recommended For You" subtitle="Matched to the majors from your Major Fit results." />
+          <div className="mt-4 grid sm:grid-cols-2 gap-4">
+            {recommended.map((u) => (
+              <UniversityCard key={u.id} u={u} onAdd={() => addToOpportunities(u)} />
+            ))}
+          </div>
+        </Card>
+      )}
+
       <Card className="p-5">
         <CardHeader
           title="Universities"
@@ -70,52 +115,59 @@ export default function UniversitiesView() {
             ))}
           </div>
         </div>
+        <p className="text-[12px] text-neutral-400 mt-3">{results.length} of {UNIVERSITIES.length} universities</p>
       </Card>
 
       {results.length === 0 ? (
         <Card className="p-5">
-          <EmptyState icon={Landmark} title="No matches" description="Try a different search term or region." />
+          <EmptyState icon={Landmark} title="No matches" description="Try a different search term or region." action={<Button size="sm" variant="secondary" icon={RotateCcw} onClick={() => { setQuery(''); setRegion('All') }}>Clear filters</Button>} />
         </Card>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
           {results.map((u) => (
-            <Card key={u.id} className="p-5 flex flex-col">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[14.5px] font-semibold text-neutral-900 dark:text-white">{u.name}</p>
-                  <p className="text-[12.5px] text-neutral-400 mt-0.5">{u.city}, {u.country}</p>
-                </div>
-                <Badge tone="accent" className="flex-shrink-0">{u.region}</Badge>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {u.notableFor.map((n) => (
-                  <Badge key={n} tone="neutral">{n}</Badge>
-                ))}
-              </div>
-
-              <p className="text-[13px] text-neutral-500 dark:text-neutral-400 mt-3 leading-relaxed flex-1">{u.values}</p>
-
-              <div className="mt-4 flex items-center gap-2">
-                <Button
-                  as="a"
-                  href={u.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  variant="ghost"
-                  size="sm"
-                  icon={ExternalLink}
-                >
-                  Visit site
-                </Button>
-                <Button variant="secondary" size="sm" icon={Plus} onClick={() => addToOpportunities(u)}>
-                  Add to Opportunities
-                </Button>
-              </div>
-            </Card>
+            <UniversityCard key={u.id} u={u} onAdd={() => addToOpportunities(u)} />
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+function UniversityCard({ u, onAdd }) {
+  return (
+    <Card className="p-5 flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[14.5px] font-semibold text-neutral-900 dark:text-white">{u.name}</p>
+          <p className="text-[12.5px] text-neutral-400 mt-0.5">{u.city}, {u.country}</p>
+        </div>
+        <Badge tone="accent" className="flex-shrink-0">{u.region}</Badge>
+      </div>
+
+      <div className="flex items-center gap-1.5 mt-2 text-[11.5px] text-neutral-400">
+        <span>{u.type}</span>
+        <span>·</span>
+        <span>{u.size}</span>
+        <span>·</span>
+        <span>{u.setting}</span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {u.notableFor.map((n) => (
+          <Badge key={n} tone="neutral">{n}</Badge>
+        ))}
+      </div>
+
+      <p className="text-[13px] text-neutral-500 dark:text-neutral-400 mt-3 leading-relaxed flex-1">{u.values}</p>
+
+      <div className="mt-4 flex items-center gap-2">
+        <Button as="a" href={u.website} target="_blank" rel="noreferrer" variant="ghost" size="sm" icon={ExternalLink}>
+          Visit site
+        </Button>
+        <Button variant="secondary" size="sm" icon={Plus} onClick={onAdd}>
+          Add to Opportunities
+        </Button>
+      </div>
+    </Card>
   )
 }

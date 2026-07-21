@@ -30,6 +30,7 @@ alter table profiles add column if not exists public_slug text unique;
 alter table profiles add column if not exists portfolio_public boolean not null default false;
 alter table profiles add column if not exists intended_major text not null default '';
 alter table profiles add column if not exists test_targets jsonb not null default '{}'::jsonb;
+alter table profiles add column if not exists major_fit jsonb not null default '{}'::jsonb;
 
 alter table profiles drop constraint if exists public_slug_format;
 alter table profiles add constraint public_slug_format check (public_slug is null or public_slug ~ '^[a-z0-9-]{3,32}$');

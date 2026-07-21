@@ -71,6 +71,7 @@ export function StoreProvider({ children }) {
           remindersNotified: snap.notifications.remindersNotified,
           northStar: snap.northStar,
           testTargets: snap.testPrep.targets,
+          majorFit: snap.majorFit,
         },
         user.id
       )
@@ -170,6 +171,14 @@ export function StoreProvider({ children }) {
     [scheduleProfileSync]
   )
 
+  const setMajorFit = useCallback(
+    (patch) => {
+      setData((prev) => ({ ...prev, majorFit: { ...prev.majorFit, ...patch } }))
+      scheduleProfileSync()
+    },
+    [scheduleProfileSync]
+  )
+
   const recordActivityToday = useCallback(() => {
     setData((prev) => ({ ...prev, streak: { ...prev.streak, datesActive: recordToday(prev.streak.datesActive) } }))
     scheduleProfileSync()
@@ -204,7 +213,7 @@ export function StoreProvider({ children }) {
         .then(() =>
           supabase
             .from('profiles')
-            .upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {}, northStar: empty.northStar, testTargets: {} }, user.id))
+            .upsert(profileToDb(empty.profile, { streakDates: [], badgesSeen: [], remindersNotified: {}, northStar: empty.northStar, testTargets: {}, majorFit: empty.majorFit }, user.id))
         )
         .catch((err) => console.error(err))
     }
@@ -235,6 +244,7 @@ export function StoreProvider({ children }) {
           goals: { ...base.northStar.goals, ...next.northStar?.goals },
         },
         testPrep: { targets: { ...base.testPrep.targets, ...next.testPrep?.targets } },
+        majorFit: { ...base.majorFit, ...next.majorFit },
       }
       setData(merged)
       if (cloudActive) pushAllToCloud(user.id, merged).catch((err) => console.error(err))
@@ -263,6 +273,7 @@ export function StoreProvider({ children }) {
       setProfile,
       setNorthStar,
       setTestTargets,
+      setMajorFit,
       resetAll,
       loadDemo,
       replaceAll,
@@ -285,6 +296,7 @@ export function StoreProvider({ children }) {
       setProfile,
       setNorthStar,
       setTestTargets,
+      setMajorFit,
       resetAll,
       loadDemo,
       replaceAll,

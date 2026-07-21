@@ -140,6 +140,7 @@ export function profileToDb(profile, extras, userId) {
     reminders_notified: extras.remindersNotified,
     north_star: extras.northStar,
     test_targets: extras.testTargets,
+    major_fit: extras.majorFit,
     updated_at: new Date().toISOString(),
   }
 }
@@ -168,5 +169,12 @@ export function profileFromDb(row) {
       directions: row.north_star?.directions || [],
     },
     testPrep: { targets: row.test_targets || {} },
+    majorFit: {
+      stemPct: row.major_fit?.stemPct ?? null,
+      nonstemPct: row.major_fit?.nonstemPct ?? null,
+      lean: row.major_fit?.lean || '',
+      topMajors: row.major_fit?.topMajors || [],
+      completedAt: row.major_fit?.completedAt || '',
+    },
   }
 }
