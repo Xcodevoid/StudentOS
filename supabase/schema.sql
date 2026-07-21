@@ -386,12 +386,33 @@ create table if not exists awards (
   created_at timestamptz not null default now()
 );
 
+-- ---------- Planner ----------
+-- `recurring=true` rows are the weekly skeleton (sleep/meals/hygiene/etc,
+-- `days` is a jsonb array of weekday numbers 0-6); `recurring=false` rows
+-- are one-off blocks pinned to `date`, either placed manually or by the
+-- auto-arrange bin-packer in src/lib/planner.js (`auto_generated=true`,
+-- `linked_commitment_id` ties back to the Momentum todo it came from).
+create table if not exists planner_blocks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  label text not null default '',
+  category text not null default 'custom',
+  start_time text not null default '',
+  end_time text not null default '',
+  recurring boolean not null default false,
+  days jsonb not null default '[]'::jsonb,
+  date date,
+  linked_commitment_id uuid references commitments(id) on delete set null,
+  auto_generated boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- RLS: lock every table above to its owner ----------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries','essays','interview_practice','awards']
+  foreach t in array array['classes','assignments','exams','study_tasks','projects','activities','deadlines','goals','tasks','study_sessions','commitments','momentum_sessions','distractions','habits','habit_logs','reflections','evidence','recommenders','test_entries','essays','interview_practice','awards','planner_blocks']
   loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "%1$s: owner full access" on %1$s', t);
@@ -486,3 +507,5 @@ create index if not exists idx_test_entries_user on test_entries(user_id);
 create index if not exists idx_essays_user on essays(user_id);
 create index if not exists idx_interview_practice_user on interview_practice(user_id);
 create index if not exists idx_awards_user on awards(user_id);
+create index if not exists idx_planner_blocks_user on planner_blocks(user_id);
+create index if not exists idx_planner_blocks_date on planner_blocks(date);

@@ -8,6 +8,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Academics from './pages/Academics'
+import Planner from './pages/Planner'
 import Portfolio from './pages/Portfolio'
 import CollegePath from './pages/CollegePath'
 import GrowthJourney from './pages/GrowthJourney'
@@ -34,6 +35,7 @@ function App() {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/growth-journey" element={<GrowthJourney />} />
                   <Route path="/academics" element={<Academics />} />
+                  <Route path="/planner" element={<Planner />} />
                   <Route path="/portfolio" element={<Portfolio />} />
                   <Route path="/college-path" element={<CollegePath />} />
                   <Route path="/settings" element={<SettingsPage />} />

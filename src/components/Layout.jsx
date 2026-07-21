@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, GraduationCap, Sparkles, Compass, Settings, GalleryVerticalEnd, Cloud, CloudOff, Star } from 'lucide-react'
+import { LayoutDashboard, GraduationCap, Sparkles, Compass, Settings, GalleryVerticalEnd, Cloud, CloudOff, Star, CalendarRange } from 'lucide-react'
 import { useStore } from '../context/StoreContext'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
@@ -9,6 +9,7 @@ import MigrationPrompt from './MigrationPrompt'
 
 const NAV = [
   { to: '/', label: 'Home', icon: LayoutDashboard, end: true },
+  { to: '/planner', label: 'Planner', icon: CalendarRange },
   { to: '/growth-journey', label: 'Growth Journey', mobileLabel: 'Growth', icon: Star },
   { to: '/academics', label: 'Academics', icon: GraduationCap },
   { to: '/portfolio', label: 'Portfolio', icon: Sparkles },

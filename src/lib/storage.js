@@ -40,6 +40,7 @@ export function defaultData() {
     recommenders: [],
     testEntries: [],
     awards: [],
+    plannerBlocks: [],
     essays: [],
     interviewPractice: [],
     testPrep: { targets: {} },

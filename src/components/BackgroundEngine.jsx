@@ -4,13 +4,20 @@ import { useToast } from '../context/ToastContext'
 import { getReminderItems, EXAM_MILESTONES, KIND_LABEL } from '../lib/reminders'
 import { daysUntil } from '../lib/dates'
 import { computeNorthStar } from '../lib/northStar'
+import { dateKey } from '../lib/calendarGrid'
+import { blocksForDate, timeToMinutes } from '../lib/planner'
 
 const CHECK_INTERVAL_MS = 60_000
+// A block "just started" if we're within this many minutes of its start —
+// wide enough that a 60s poll can never skip over it entirely, narrow
+// enough that it still reads as "now," not a stale reminder.
+const BLOCK_START_WINDOW_MIN = 2
 
-// Mounted once near the app root. Two jobs, both silent unless something is
+// Mounted once near the app root. Three jobs, all silent unless something is
 // actually due: (1) fire browser notifications for newly-due items and
 // exam/test countdown milestones, deduped via data.notifications.remindersNotified;
-// (2) toast a North Star characteristic crossing an evidence-count milestone
+// (2) fire a notification when a Planner block (routine or one-off) starts;
+// (3) toast a North Star characteristic crossing an evidence-count milestone
 // (1st/3rd/5th/10th piece) (reuses the same
 // "seen" dedup store that badge unlocks used to).
 export default function BackgroundEngine() {
@@ -18,10 +25,7 @@ export default function BackgroundEngine() {
   const { push } = useToast()
 
   useEffect(() => {
-    function checkReminders() {
-      if (typeof Notification === 'undefined') return
-      if (Notification.permission !== 'granted' || !data.profile.notificationsEnabled) return
-
+    function checkDueDateReminders() {
       const todayStr = new Date().toISOString().slice(0, 10)
       getReminderItems(data).forEach((item) => {
         const diff = daysUntil(item.date)
@@ -41,6 +45,27 @@ export default function BackgroundEngine() {
           new Notification(`${KIND_LABEL[item.kind]} reminder`, { body })
         }
       })
+    }
+
+    function checkPlannerBlockStarts() {
+      const now = new Date()
+      const todayStr = dateKey(now)
+      const nowMinutes = now.getHours() * 60 + now.getMinutes()
+      blocksForDate(data.plannerBlocks, todayStr).forEach((block) => {
+        const startMin = timeToMinutes(block.startTime)
+        if (startMin === null || nowMinutes < startMin || nowMinutes >= startMin + BLOCK_START_WINDOW_MIN) return
+        const key = `block-${block.id}-${todayStr}`
+        if (isReminded(key)) return
+        markReminded(key)
+        new Notification('Starting now', { body: `${block.label} is starting.` })
+      })
+    }
+
+    function checkReminders() {
+      if (typeof Notification === 'undefined') return
+      if (Notification.permission !== 'granted' || !data.profile.notificationsEnabled) return
+      checkDueDateReminders()
+      checkPlannerBlockStarts()
     }
 
     checkReminders()
