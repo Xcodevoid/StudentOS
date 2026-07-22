@@ -36,6 +36,12 @@ export function seedDemoData() {
         { id: 'sciences', label: 'Natural Sciences & Research' },
         { id: 'education', label: 'Education & Community Work' },
       ],
+      traitScores: {
+        skills: 95, curiosity: 92, leadership: 90, analytical: 88, community: 85,
+        disciplined: 82, impact: 80, independent: 78, character: 75, communicator: 73,
+        innovator: 72, collaborator: 70, competitive: 68, strategic: 65, empathetic: 60,
+        creative: 58, performer: 40,
+      },
     },
     classes: [
       { id: uid(), name: 'AP Calculus BC', subject: 'Math', term: 'Fall 2026', credits: 1, weight: 'ap', grade: 96 },

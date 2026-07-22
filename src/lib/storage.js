@@ -53,6 +53,7 @@ export function defaultData() {
       goals: {},
       characteristics: [],
       directions: [],
+      traitScores: {},
     },
   }
 }
@@ -81,6 +82,7 @@ export function loadData() {
         goals: { ...parsed.northStar?.goals },
         characteristics: parsed.northStar?.characteristics || [],
         directions: parsed.northStar?.directions || [],
+        traitScores: parsed.northStar?.traitScores || {},
       },
     }
   } catch {

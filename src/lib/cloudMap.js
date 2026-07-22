@@ -172,6 +172,7 @@ export function profileFromDb(row) {
       goals: { ...row.north_star?.goals },
       characteristics: row.north_star?.characteristics || [],
       directions: row.north_star?.directions || [],
+      traitScores: row.north_star?.traitScores || {},
     },
     testPrep: { targets: row.test_targets || {} },
     majorFit: {

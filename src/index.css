@@ -22,6 +22,24 @@
 
 :root {
   color-scheme: light dark;
+
+  /* Strengths Profile category palette — validated categorical (dataviz
+     skill: adjacent CVD ΔE >= 8, normal-vision ΔE >= 15, both modes). */
+  --cat-mind: #2a78d6;
+  --cat-hands: #eb6834;
+  --cat-drive: #1baf7a;
+  --cat-heart: #eda100;
+  --cat-voice: #e87ba4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cat-mind: #3987e5;
+    --cat-hands: #d95926;
+    --cat-drive: #199e70;
+    --cat-heart: #c98500;
+    --cat-voice: #d55181;
+  }
 }
 
 html, body, #root {
